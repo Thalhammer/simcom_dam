@@ -1,0 +1,115 @@
+Format: Log Type - Time(microsec) - Message - Optional Info
+Log Type: B - Since Boot(Power On Reset),  D - Delta,  S - Statistic
+S - QC_IMAGE_VERSION_STRING=BOOT.BF.3.1.4.C1-00002
+S - IMAGE_VARIANT_STRING=LAATMNAZA
+S - OEM_IMAGE_VERSION_STRING=hj-linux
+S - Boot Config, 0x000002e1
+B -      1216 - PBL, Start
+B -      3723 - bootable_media_detect_entry, Start
+B -      4375 - bootable_media_detect_success, Start
+B -      4379 - elf_loader_entry, Start
+B -      6527 - auth_hash_seg_entry, Start
+B -      6749 - auth_hash_seg_exit, Start
+B -     55948 - elf_segs_hash_verify_entry, Start
+B -    101218 - PBL, End
+B -    109678 - SBL1, Start
+B -    168085 - pm_device_init, Start
+B -    187910 - PM_SET_VAL:Skip
+D -     18300 - pm_device_init, Delta
+B -    188978 - boot_config_data_table_init, Start
+D -    174917 - boot_config_data_table_init, Delta - (420 Bytes)
+B -    367342 - CDT version:3,Platform ID:8,Major ID:1,Minor ID:0,Subtype:0
+B -    373533 - sbl1_ddr_set_params, Start
+B -    377346 - Pre_DDR_clock_init, Start
+D -       244 - Pre_DDR_clock_init, Delta
+D -         0 - sbl1_ddr_set_params, Delta
+B -    389637 - ramSize:1024:0
+B -    391528 - pm_driver_init, Start
+D -      4697 - pm_driver_init, Delta
+B -    399367 - cpr_init, Start
+D -        30 - cpr_init, Delta
+B -    403759 - cpr_cx_mx_apc_vol_update, Start
+D -        91 - cpr_cx_mx_apc_vol_update, Delta
+B -    418277 - sbl1_qhsusb_al_do_fast_enum, Start
+D -         0 - sbl1_qhsusb_al_do_fast_enum, Delta
+B -    421510 - clock_init, Start
+D -       152 - clock_init, Delta
+B -    427305 - boot_flash_init, Start
+B -    457591 - gxferIndex:4,g_xferDebug:4====:0
+B -    457683 - Partition:0:EFS2, start:20,0x00280000, limit:116,0x00E80000:0
+B -    462563 - Partition:0:EFS2BAK, start:122,0x00F40000, limit:222,0x01BC0000:0
+B -    469883 - Partition:0:fotaflag, start:222,0x01BC0000, limit:224,0x01C00000:0
+B -    477142 - Partition:0:MBA, start:224,0x01C00000, limit:228,0x01C80000:0
+B -    484004 - Partition:0:ACDB, start:228,0x01C80000, limit:232,0x01D00000:0
+B -    490958 - Partition:0:QDSP, start:235,0x01D60000, limit:452,0x03880000:0
+B -    497912 - Partition:0:APPS, start:452,0x03880000, limit:496,0x03E00000:0
+B -    504836 - Partition:0:SCRUB, start:496,0x03E00000, limit:713,0x05920000:0
+B -    511881 - Partition:0:Cache_APPS, start:713,0x05920000, limit:757,0x05EA0000:0
+B -    519323 - Partition:0:Cache_ACDB, start:766,0x05FC0000, limit:770,0x06040000:0
+B -    526826 - Partition:0:Cache_MBA, start:770,0x06040000, limit:774,0x060C0000:0
+B -    534146 - Partition:0:BAKAP, start:778,0x06140000, limit:800,0x06400000:0
+B -    541222 - Partition:0:EFS2APPS, start:800,0x06400000, limit:1024,0x08000000:0
+B -    548512 - start to check bad block::0
+B -    684237 - Start:0,limit:1024!:0
+B -    684267 - end check bad block::0
+D -    253882 - boot_flash_init, Delta
+B -    688293 - boot_check_backup_efs:0
+B -    691862 - cpi_id:0x009730E1, feature_id:0x10000973:0
+B -    697047 - boot_check_backup_efs 1111:0
+B -    701073 - boot_check_backup_efs 2222:0
+B -    705068 - boot_check_backup_efs 3333:0
+B -    709003 - boot_check_backup_efs 4444:0
+B -    712998 - boot_check_backup_efs end::222
+B -    717207 - boot_check_backup_efs 5555:0
+B -    721233 - boot_check_backup_efs 6666:  :0
+B -    725412 - boot_check_backup_efs 7777:0
+B -    729438 - simcom_dload_id_check:451354623
+B -    733616 - simcom_dload_id_check:-1562359685
+B -    738618 - magtic_number:0x87653311,pagesize:2048,count:64:0
+B -    743986 - backup_number:0xFEDCBBAA,pagesize:2048,count:64:0
+B -    749720 - simcom_dload_md_id_check:-688562174
+B -    754265 - simcom_dload_md_id_check:832046867
+B -    758840 - simcom_dload_id_check:451354623
+B -    763110 - simcom_dload_id_check:-1562359685
+B -    767502 - magtic_number:0x87653311,pagesize:2048,count:64:0
+B -    773327 - efs_backup_partition_end:222
+B -    777323 - efs_backup_partition_start:122
+B -    781410 - index:0
+B -    783514 - count:%d:14144
+B -    786351 - boot_check_backup_efs return:0
+B -    791017 - simcom_check_restore_cache: not erase:0
+B -    795562 - boot_check_fota_flag:0
+B -    799374 - QSEE Image Loaded, Start
+B -    805322 - Image Auth, Start
+D -      5887 - Image Auth, Done
+D -     75000 - QSEE Image Loaded, Delta - (487460 Bytes)
+B -    874404 - SEC Image Loaded, Start
+D -       457 - SEC Image Loaded, Delta - (2048 Bytes)
+B -    882944 - sbl1_efs_handle_cookies, Start
+D -         0 - sbl1_efs_handle_cookies, Delta
+B -    889959 - RPM Image Loaded, Start
+B -    896181 - Image Auth, Start
+D -      5856 - Image Auth, Done
+D -     30470 - RPM Image Loaded, Delta - (150408 Bytes)
+B -    920551 - acdb_load_cancel
+B -    922503 - ACDB Image Loaded, Start
+D -     20191 - ACDB Image Loaded, Delta - (131112 Bytes)
+B -    942724 - mba_load_cancel
+B -    944341 - MBA Image Loaded, Start
+D -     34557 - MBA Image Loaded, Delta - (246592 Bytes)
+B -    979111 - mpss_load_cancel
+B -    980514 - Q6 Image Loaded, Start
+B -    986705 - Image Auth, Start
+D -     21594 - Image Auth, Done
+D -   2790506 - Q6 Image Loaded, Delta - (22692064 Bytes)
+B -   3771081 - apps_load_cancel
+B -   3772758 - APPS Image Loaded, Start
+B -   3778431 - Image Auth, Start
+D -       915 - Image Auth, Done
+D -    519384 - APPS Image Loaded, Delta - (4153140 Bytes)
+B -   4292173 - QSEE Execution, Start
+D -       122 - QSEE Execution, Delta
+B -   4297785 - SBL1, End
+D -   4190456 - SBL1, Delta
+S - Throughput, 7000 KB/s  (27863286 Bytes,  3557954 us)
+S - DDR Frequency, 240 MHz
