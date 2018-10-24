@@ -16,12 +16,35 @@ Select the folder "custapp" or create it if there is none and upload your DAM to
 Once done you can reset your modem and you should see your module start running.
 
 ## Linux
-Unfortunately I don't know a way to upload a module without using a windows machine (or VM). However since the compiler is best run on linux I'm currently looking for a way to upload modules using only linux. There are currently two ways I can think of:
-* [libopenpst](https://github.com/openpst/libopenpst) seems to implement a efs manager, however I did not yet try it and it seems to be no more supported (last commit was 2 years ago).
-* Capturing USB traffic on windows and implementing a subset using libusb on linux (the way i'll probably go, but I didn't have time to do so yet).
-* Implement a bootloader and upload images via serial (you still need qpst for initial upload and if you screw up).
+Once you connect your module using USB to a modern linux machine 5 new tty devices should appear. `dmesg` should output something similar to this:
+```
+[19146.558820] usb 3-1: new high-speed USB device number 10 using xhci_hcd
+[19146.703843] usb 3-1: New USB device found, idVendor=1e0e, idProduct=9001
+[19146.703848] usb 3-1: New USB device strings: Mfr=3, Product=2, SerialNumber=4
+[19146.703850] usb 3-1: Product: SimTech SIM7000
+[19146.703853] usb 3-1: Manufacturer: SimTech, Incorporated
+[19146.703855] usb 3-1: SerialNumber: 1234567890ABCDEF
+[19146.706232] option 3-1:1.0: GSM modem (1-port) converter detected
+[19146.706443] usb 3-1: GSM modem (1-port) converter now attached to ttyUSB0
+[19146.706639] option 3-1:1.1: GSM modem (1-port) converter detected
+[19146.706898] usb 3-1: GSM modem (1-port) converter now attached to ttyUSB1
+[19146.707091] option 3-1:1.2: GSM modem (1-port) converter detected
+[19146.707256] usb 3-1: GSM modem (1-port) converter now attached to ttyUSB2
+[19146.707452] option 3-1:1.3: GSM modem (1-port) converter detected
+[19146.707609] usb 3-1: GSM modem (1-port) converter now attached to ttyUSB3
+[19146.707827] option 3-1:1.4: GSM modem (1-port) converter detected
+[19146.707998] usb 3-1: GSM modem (1-port) converter now attached to ttyUSB4
+```
+Note that ttyUSB names might differ if you already have a USB2Serial adapter connected, however the order should stay the same. The function of the interfaces is as following:
+ID | Function
+---|---------
+0  | Diagnostic interface (This is the one we use to upload firmware)
+1  | GPS NMEA Interface (GPS Info gets output here, needs to be enabled using AT)
+2  | AT Port (Allows sending AT commands)
+3  | Modem Port (Could be used to connect to the internet via this modem)
+4  | USB Audio Port
 
-None of those three ways are anywhere near a working condition.
+There is an cross plattform c++ implementation of the qualcomm debug protocol here [libopenpst](https://github.com/openpst/libopenpst) and I maintain [a fork of it](https://github.com/Thalhammer/libopenpst/tree/efs_write) where I fixed some bugs, implemented efs writing and improved performance. Based on it I'm going to slowly build a toolset for building and uploading modules.
 
 ## Troubleshooting
 ### My image does not load

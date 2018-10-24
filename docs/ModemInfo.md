@@ -13,6 +13,7 @@ Simcom's SIM7000E module seems to be based on the [MDM9206](https://www.qualcomm
 * Builtin LDO regulator to supply external electronics
 * &gt;16MB flash filesystem
 * Embedded OS with support for threading, memory management, etc (ThreadX ?)
+* ~3MB Ram (Code and Dynamic data)
 
 ![Pinout](images/pinout.png)
 
