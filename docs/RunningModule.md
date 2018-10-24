@@ -41,6 +41,7 @@ Once you connect your module using USB to a modern linux machine 5 new tty devic
 [19146.707998] usb 3-1: GSM modem (1-port) converter now attached to ttyUSB4
 ```
 Note that ttyUSB names might differ if you already have a USB2Serial adapter connected, however the order should stay the same. The function of the interfaces is as following:
+
 ID | Function
 ---|---------
 0  | Diagnostic interface (This is the one we use to upload firmware)
