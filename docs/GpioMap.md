@@ -2,12 +2,12 @@
 
 Name     | Pin | DAM Pin | Description
 ---------|-----|---------|------------
-GPIO4    |   48|       26| GPIO Pin 4
 GPIO3    |   68|       11| GPIO Pin 3
 GPIO2    |   67|       10| GPIO Pin 2
 NETLIGHT |   52|       50| Netlight LED Output (Seems like after boot it can be reconfigured and used by DAM)
-I2C_SDA  |   37|        2| I2C Port Data
+GPIO4    |   48|       26| GPIO Pin 4
 I2C_SCL  |   38|        3| I2C Port Clock
+I2C_SDA  |   37|        2| I2C Port Data
 ADC      |   25|        ?| ADC Port, seems to be not usable
 LOG_TX   |   23|      32?| LOG TX, no pin found
 PCM_DOUT |   14|       22| PCM Data out
