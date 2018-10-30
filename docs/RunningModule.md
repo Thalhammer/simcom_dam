@@ -55,3 +55,6 @@ There is an cross plattform c++ implementation of the qualcomm debug protocol he
 ## Troubleshooting
 ### My image does not load
 Make sure you did upload it to the correct filesystem and you named it correctly.
+### My module reboots and appears as QHSUSB_BULK
+Most likely your DAM crashes before initialisation is done or you really screwed up the header.
+Take a look at [debricking](Debricking.md) to find out how to recover.
