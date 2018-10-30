@@ -6,7 +6,7 @@ TOOLS = upload
 
 .PHONY: all deps clean dist-clean
 
-all: upload
+all: $(TOOLS)
 
 deps: deps/.done
 
@@ -16,7 +16,7 @@ clean:
 dist-clean: clean
 	@rm -rf deps
 
-upload: upload.cpp | deps
+$(TOOLS): % : %.cpp | deps
 	@mkdir -p `dirname $(DEP_DIR)/$@.d`
 	@echo Building $<
 	@$(CXX) $(FLAGS) $(CXXFLAGS) $< -Ldeps/libopenpst/build/release -lopenpst -o $@
