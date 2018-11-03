@@ -4,7 +4,7 @@
 size_t strlen(const char* str) {
 	const char* end = str;
 	while(*end++ != '\0');
-	return end - str;
+	return (end - str) - 1;
 }
 
 void* memset(void* ptr, int value, size_t num) {

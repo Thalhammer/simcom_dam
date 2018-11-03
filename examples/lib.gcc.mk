@@ -12,7 +12,7 @@ LINK=$(GCC_TOOLCHAIN)/arm-none-eabi-ld
 AR=$(GCC_TOOLCHAIN)/arm-none-eabi-ar
 
 FLAGS += -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_TRACE -DTX_DISABLE_NOTIFY_CALLBACKS -DTX_DAM_QC_CUSTOMIZATIONS -DTARGET_THREADX -D__SIMCOM_DAM__
-FLAGS += -O0 -Wall -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfpu=vfp -ffunction-sections
+FLAGS += -O2 -Wall -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfpu=vfp -ffunction-sections
 CFLAGS +=
 CXXFLAGS +=
 INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi -I $(DAM_INC_BASE)/stdlib
