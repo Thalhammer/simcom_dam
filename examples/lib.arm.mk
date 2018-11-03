@@ -1,21 +1,21 @@
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-SRC ?= $(shell find . -name "*.c") $(shell find . -name "*.gcc.S")
+SRC ?= $(shell find . -name "*.c") $(shell find . -name "*.arm.S")
 OBJ = $(SRC:=.o)
 
 DAM_INC_BASE=$(SELF_DIR)../api/include
 
 OUTNAME=$(OUTPUT_PATH)/lib.a
 
-CC=$(GCC_TOOLCHAIN)/arm-none-eabi-gcc
-LINK=$(GCC_TOOLCHAIN)/arm-none-eabi-ld
-AR=$(GCC_TOOLCHAIN)/arm-none-eabi-ar
+CC=$(ARM_TOOLCHAIN)/armcc
+LINK=$(ARM_TOOLCHAIN)/armlink
+AR=$(ARM_TOOLCHAIN)/armar
 
-FLAGS += -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_TRACE -DTX_DISABLE_NOTIFY_CALLBACKS -DTX_DAM_QC_CUSTOMIZATIONS -DTARGET_THREADX -D__SIMCOM_DAM__
-FLAGS += -O0 -Wall -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfpu=vfp -ffunction-sections
-CFLAGS +=
+FLAGS += -DT_ARM -D__RVCT__ -D_ARM_ASM_ -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_TRACE -DTX_DISABLE_NOTIFY_CALLBACKS -DTX_DAM_QC_CUSTOMIZATIONS -DTARGET_THREADX -D__SIMCOM_DAM__
+FLAGS += -O1 --diag_suppress=9931 --diag_error=warning --cpu=Cortex-A7 --protect_stack --arm_only --apcs=/interwork
+CFLAGS += --c99
 CXXFLAGS +=
-INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi -I $(DAM_INC_BASE)/stdlib
+INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi
 
 include ../config.mk
 -include config.mk
@@ -36,7 +36,7 @@ clean:
 $(OUTNAME): $(OBJ)
 	@mkdir -p $(OUTPUT_PATH)
 	@echo Generating $@
-	@$(AR) rcs $@ $^
+	@$(AR) -rcs $@ $^
 
 %.c.o: %.c
 	@mkdir -p `dirname $(DEP_DIR)/$@.d`

@@ -5,9 +5,9 @@ PHDRS {
 SECTIONS {
   ER_RO 0x42000000 : {
     Image$$ER_RO$$Base = .;
-	*txm_module_preamble.S.o (.text .text.*)
-	*txm_module_preamble.S.o (Init)
-	*txm_module_preamble.S.o (.rodata .rodata.*)
+	*txm_module_preamble.gcc.S.o (.text .text.*)
+	*txm_module_preamble.gcc.S.o (Init)
+	*txm_module_preamble.gcc.S.o (.rodata .rodata.*)
     * (.text .text.*)
     * (.rodata .rodata.*)
     Image$$ER_RO$$Limit = .;

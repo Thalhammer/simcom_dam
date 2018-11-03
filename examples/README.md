@@ -4,6 +4,13 @@ This folder contains a number of examples on how to use parts of the API.
 I don't have the time give an example for every single available option,
 but I will happily accept pullrequests that add examples.
 
+## Compiling
+In order to compile all examples and the reimplementation just run make in this folder.
+Running make without TYPE specified will use ARMCC to compile everything, which is equivalent of `make TYPE=arm`.
+To use GCC instead run `make TYPE=gcc`. Note that when switching between both you need to run distclean in between.
+In order to upload an example run `make upload` in the examples folder. Note that if you used `TYPE=gcc` while compiling
+you need to also specify it when doing an upload, since make upload would compile all changes if there are any.
+
 ## Index
 
 Folder                          | Description

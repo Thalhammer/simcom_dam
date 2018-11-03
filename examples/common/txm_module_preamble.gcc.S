@@ -28,7 +28,7 @@ __txm_module_preamble:
 	.p2align 2
 	.word       0x134350ac                                        @ Module ID (application defined) 
 	.p2align 2
-	.word       0x02000000                                        @ Module Properties where:
+	.word       0x01000000                                        @ Module Properties where:
 	.p2align 2
 															   @   Bits 31-24: Compiler ID
 															   @           0 -> IAR
