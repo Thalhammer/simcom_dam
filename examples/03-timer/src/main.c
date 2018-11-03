@@ -4,17 +4,27 @@
 #include "qapi/qapi.h"
 #include "qapi/qapi_status.h"
 #include "qapi_timer.h"
-#include "uart.h"
+#include "util/uart.h"
 
 #include "tx_api.h"
 
+uart_context_t uart;
+int i;
+
 void timer_test_cb(uint32_t udata) {
-	uart_write_str("cb\r\n");
+	uart_printf(uart, "cb %d\r\n", i++);
 }
+
+uint8_t uart_buf[256];
 
 int dam_app_start(void)
 {
-	uart_init();
+	i=0;
+	uart_init_config_t uartcfg;
+	uart_default_cfg(&uartcfg);
+	uartcfg.buf = uart_buf;
+	uartcfg.buf_len = 256;
+	if(uart_init(&uart, &uartcfg) != QAPI_OK) return TX_SUCCESS;
 
 	qapi_TIMER_handle_t timer_handle;	  
 	qapi_TIMER_define_attr_t timer_def_attr; 
@@ -27,12 +37,10 @@ int dam_app_start(void)
 	//should be called whenever the timer usage is done.
 	int res = qapi_Timer_Def( &timer_handle, &timer_def_attr);
 	if(res != 0) {
-		uart_write_str("failed to def timer\r\n");
-		char str[] = {0, 0};
-		str[0] = '0' + res;
-		uart_write(str, 1);
+		uart_printf(uart, "failed to def timer: %d\r\n", res);
+		return TX_SUCCESS;
 	}
-	else uart_write_str("timer defined\r\n");
+	else uart_write_str(uart, "timer defined\r\n");
 
 	qapi_TIMER_set_attr_t timer_set_attr; 
 	timer_set_attr.reload = 1000;
@@ -40,12 +48,9 @@ int dam_app_start(void)
 	timer_set_attr.unit = QAPI_TIMER_UNIT_MSEC; 
 	res = qapi_Timer_Set(timer_handle, &timer_set_attr);
 	if(res != 0){
-		uart_write_str("failed to set timer\r\n");
-		char str[] = {0, 0};
-		str[0] = '0' + res;
-		uart_write(str, 1);
+		uart_printf(uart, "failed to set timer: %d\r\n", res);
 	}
-	else uart_write_str("timer set\r\n");
+	else uart_write_str(uart, "timer set\r\n");
 
 	// stop a running timer
 	// qapi_Timer_stop(timer_handle);
