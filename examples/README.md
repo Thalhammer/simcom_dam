@@ -19,3 +19,5 @@ Folder                          | Description
 [00-helloworld](00-helloworld)  | Contains a really simple example that just outputs a hello world to the dam uart.
 [01-uart](01-uart)              | Contains an example on how to use the uart in a real app including buffering and synchronisation.
 [02-gpio](02-gpio)              | Good old blinking LED. Toogles an LED on GPIO3, to demonstrate basic GPIO usage.
+[03-timer](03-timer)            | Simple example showing how to use timers provided by qapi.
+[04-net](04-net)                | (2G) Cellular example, connects to network and configures DNS based on providers DNS.
