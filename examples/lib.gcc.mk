@@ -1,7 +1,9 @@
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
 SRC ?= $(shell find . -name "*.c") $(shell find . -name "*.gcc.S")
-OBJ = $(SRC:=.o)
+EXCLUDE_SRC =
+FSRC = $(filter-out $(EXCLUDE_SRC), $(SRC))
+OBJ = $(FSRC:=.o)
 
 DAM_INC_BASE=$(SELF_DIR)../api/include
 
@@ -22,9 +24,22 @@ include ../config.mk
 -include $(SELF_DIR)usrconfig.mk
 -include usrconfig.mk
 
-.PHONY: all clean
+.PHONY: all clean printcfg
 
 all: $(OUTNAME)
+
+printcfg:
+	@echo "TYPE=            " $(TYPE)
+	@echo "SRC=             " $(SRC)
+	@echo "EXCLUDE_SRC=     " $(EXCLUDE_SRC)
+	@echo "Filtered SRC=    " $(FSRC)
+	@echo "Includes=        " $(INC_PATHS)
+	@echo "FLAGS=           " $(FLAGS)
+	@echo "CFLAGS=          " $(CFLAGS)
+	@echo "CXXFLAGS=        " $(CXXFLAGS)
+	@echo "CC=              " $(CC)
+	@echo "LINK=            " $(LINK)
+	@echo "AR=              " $(AR)
 
 clean:
 	@echo "Cleaning..."
@@ -39,9 +54,10 @@ $(OUTNAME): $(OBJ)
 	@$(AR) rcs $@ $^
 
 %.c.o: %.c
-	@mkdir -p `dirname $(DEP_DIR)/$@.d`
 	@echo Building $<
 	@$(CC) -c $(FLAGS) $(CFLAGS) $(INC_PATHS) $< -o $@
+	@mkdir -p `dirname $(DEP_DIR)/$@.d`
+	@$(CC) -c $(FLAGS) $(CFLAGS) $(INC_PATHS) -MT '$@' -MM $< > $(DEP_DIR)/$@.d
 
 %.S.o: %.pp.S
 	@echo Building $<

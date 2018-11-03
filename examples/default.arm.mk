@@ -1,7 +1,9 @@
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
 SRC ?= $(shell find . -name "*.c") $(shell find . -name "*.arm.S")
-OBJ = $(SRC:=.o)
+EXCLUDE_SRC =
+FSRC = $(filter-out $(EXCLUDE_SRC), $(SRC))
+OBJ = $(FSRC:=.o)
 
 DAM_INC_BASE=$(SELF_DIR)../api/include
 
@@ -25,6 +27,19 @@ include $(SELF_DIR)config.mk
 .PHONY: all clean upload
 
 all: $(OUTNAME).bin
+
+printcfg:
+	@echo "TYPE=            " $(TYPE)
+	@echo "SRC=             " $(SRC)
+	@echo "EXCLUDE_SRC=     " $(EXCLUDE_SRC)
+	@echo "Filtered SRC=    " $(FSRC)
+	@echo "Includes=        " $(INC_PATHS)
+	@echo "FLAGS=           " $(FLAGS)
+	@echo "CFLAGS=          " $(CFLAGS)
+	@echo "CXXFLAGS=        " $(CXXFLAGS)
+	@echo "CC=              " $(CC)
+	@echo "LINK=            " $(LINK)
+	@echo "FROMELF=         " $(FROMELF)
 
 clean:
 	@echo "Cleaning..."
