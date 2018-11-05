@@ -17,7 +17,6 @@ static const char* _netmgr_user;
 static const char* _netmgr_pass;
 static netmgr_constate_cb_t _netmgr_constate_cb;
 static qapi_TIMER_handle_t _netmgr_reconnect_timer;
-static int _netmgr_reconnect;
 static TX_BYTE_POOL _netmgr_pool;
 static UCHAR _netmgr_pool_storage[2048];
 
@@ -103,7 +102,6 @@ static void _netmgr_dss_cb(
 		if (_netmgr_constate == NETMGR_disconnected)
 			return;
 		_netmgr_constate = NETMGR_disconnected;
-		_netmgr_reconnect = 1;
 		
 		TRACE("network became inactive\r\n");
 		if(_netmgr_dss_handle != NULL)
@@ -116,22 +114,20 @@ static void _netmgr_dss_cb(
 }
 
 static void _netmgr_reconnect_cb() {
-	if(_netmgr_reconnect == 1) {
-		_netmgr_reconnect = 0;
+	if(_netmgr_constate == NETMGR_disconnected) {
 		netmgr_reconnect();
 	}
 }
 
 int netmgr_init(void) {
 	TRACE("netmgr is initialising\r\n");
-	_netmgr_constate = NETMGR_disconnected;
+	_netmgr_constate = NETMGR_initiated;
 	_netmgr_dss_handle = NULL;
 	_netmgr_apn = NULL;
 	_netmgr_user = NULL;
 	_netmgr_pass = NULL;
 	_netmgr_constate_cb = NULL;
 	_netmgr_reconnect_timer = NULL;
-	_netmgr_reconnect = 0;
 	tx_byte_pool_create(&_netmgr_pool, "netmgr_pool", _netmgr_pool_storage, 2048);
 	return QAPI_OK;
 }
@@ -178,49 +174,62 @@ int netmgr_connect(const char* APN, const char* user, const char* pw) {
 	_netmgr_apn = buf_apn;
 	_netmgr_user = buf_user;
 	_netmgr_pass = buf_pw;
-	return netmgr_reconnect();
+	int res = netmgr_reconnect();
+	if(res != QAPI_OK && _netmgr_reconnect_timer != NULL) {
+		_netmgr_constate = NETMGR_disconnected;
+		return TX_SUCCESS;
+	}
+	return res;
 }
 
 int netmgr_reconnect(void) {
 	int result = 0;
 	qapi_DSS_Call_Param_Value_t param_info;
 
+	TRACE("reconnecting network\r\n");
+
+	_netmgr_constate = NETMGR_connecting;
+
 	result = qapi_DSS_Get_Data_Srvc_Hndl(_netmgr_dss_cb, NULL,  &_netmgr_dss_handle);
  
-	if (result == QAPI_OK && _netmgr_dss_handle != NULL )
-	{   
-		param_info.buf_val = NULL;
-		param_info.num_val = QAPI_DSS_RADIO_TECH_UNKNOWN;
-		result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_TECH_PREF_E, &param_info);
- 
-		param_info.buf_val = NULL;
-		param_info.num_val = QAPI_DSS_IP_VERSION_4;
-		result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_IP_VERSION_E, &param_info);
- 
-		param_info.buf_val = NULL;
-		param_info.num_val = 1;
-		result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_UMTS_PROFILE_IDX_E, &param_info);
-
-		if(_netmgr_apn != NULL)
-		{
-			param_info.buf_val = (char*)_netmgr_apn;
-			param_info.num_val = strlen(_netmgr_apn);
-			result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_APN_NAME_E, &param_info);
-		}
-		if(_netmgr_user != NULL)
-		{
-			param_info.buf_val = (char*)_netmgr_user;
-			param_info.num_val = strlen(_netmgr_user);
-			result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_USERNAME_E, &param_info);
-		}
-		if(_netmgr_pass != NULL)
-		{
-			param_info.buf_val = (char*)_netmgr_pass;
-			param_info.num_val = strlen(_netmgr_pass);
-			result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_PASSWORD_E, &param_info);
-		}
-		result = qapi_DSS_Start_Data_Call (_netmgr_dss_handle);
+	if (result != QAPI_OK || _netmgr_dss_handle == NULL ) { TRACE("failed to get data hndl: %d\r\n", result); return result; }
+	
+	param_info.buf_val = NULL;
+	param_info.num_val = QAPI_DSS_RADIO_TECH_UNKNOWN;
+	result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_TECH_PREF_E, &param_info);
+	if(result != QAPI_OK) { TRACE("failed to set tech param: %d\r\n", result); return result; }
+	param_info.buf_val = NULL;
+	param_info.num_val = QAPI_DSS_IP_VERSION_4;
+	result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_IP_VERSION_E, &param_info);
+	if(result != QAPI_OK) { TRACE("failed to set ipversion param: %d\r\n", result); return result; }
+	param_info.buf_val = NULL;
+	param_info.num_val = 1;
+	result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_UMTS_PROFILE_IDX_E, &param_info);
+	if(result != QAPI_OK) { TRACE("failed to set profile param: %d\r\n", result); return result; }
+	if(_netmgr_apn != NULL)
+	{
+		param_info.buf_val = (char*)_netmgr_apn;
+		param_info.num_val = strlen(_netmgr_apn);
+		result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_APN_NAME_E, &param_info);
+		if(result != QAPI_OK) { TRACE("failed to set apn param: %d\r\n", result); return result; }
 	}
+	if(_netmgr_user != NULL)
+	{
+		param_info.buf_val = (char*)_netmgr_user;
+		param_info.num_val = strlen(_netmgr_user);
+		result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_USERNAME_E, &param_info);
+		if(result != QAPI_OK) { TRACE("failed to set user param: %d\r\n", result); return result; }
+	}
+	if(_netmgr_pass != NULL)
+	{
+		param_info.buf_val = (char*)_netmgr_pass;
+		param_info.num_val = strlen(_netmgr_pass);
+		result = qapi_DSS_Set_Data_Call_Param(_netmgr_dss_handle, QAPI_DSS_CALL_INFO_PASSWORD_E, &param_info);
+		if(result != QAPI_OK) { TRACE("failed to set pass param: %d\r\n", result); return result; }
+	}
+	result = qapi_DSS_Start_Data_Call (_netmgr_dss_handle);
+	if(result != QAPI_OK) { TRACE("failed to start data call: %d\r\n", result); return result; }
+
 	return result;
 }
 

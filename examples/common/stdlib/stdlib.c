@@ -21,14 +21,14 @@ char* itoa(int value, char* str, int base) {
 	return str;
 }
 
-unsigned int abs(int value) {
-	const int mask = value >> (sizeof(int) * 8 - 1); 
-	return ((value + mask) ^ mask); 
+int abs(int value) {
+	if(value < 0) return 0;
+	else return value;
 }
 
-unsigned long int labs(long int value) {
-	const long int mask = value >> (sizeof(long int) * 8 - 1); 
-	return ((value + mask) ^ mask);
+long int labs(long int value) {
+	if(value < 0) return value*-1;
+	else return value;
 }
 
 div_t div(int numer, int denom) {

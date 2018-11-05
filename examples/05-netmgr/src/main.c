@@ -13,9 +13,7 @@
 
 #define TRACE_TAG "main"
 
-#define APN "internet.telekom"
-#define USER "congstar"
-#define PASS "cs"
+#include "../../config.h"
 
 void constate_changed(netmgr_constate_t s) {
 	if(s == NETMGR_connected) {

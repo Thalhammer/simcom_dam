@@ -6,7 +6,7 @@ typedef struct {
 } div_t;
 
 extern char* itoa(int value, char* str, int base);
-extern unsigned int abs(int value);
-extern unsigned long int labs(long int value);
+extern int abs(int value);
+extern long int labs(long int value);
 
 extern div_t div(int numer, int denom);

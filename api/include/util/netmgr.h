@@ -1,6 +1,8 @@
 #pragma once
 
 typedef enum {
+	NETMGR_initiated,
+	NETMGR_connecting,
 	NETMGR_connected,
 	NETMGR_disconnected
 } netmgr_constate_t;

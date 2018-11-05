@@ -16,9 +16,7 @@ static uart_context_t uart;
 static uint8_t uart_buf[256];
 static qapi_DSS_Hndl_t dss_handle;
 
-#define APN "internet.telekom"
-#define USER "congstar"
-#define PASS "cs"
+#include "../../config.h"
 
 #define CHECK(x) {\
 	result = x;\
