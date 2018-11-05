@@ -1,6 +1,7 @@
 #pragma once
 #include <stddef.h>
 #include "qapi_status.h"
+#include <stdarg.h>
 
 struct uart_context_s;
 typedef struct uart_context_s* uart_context_t;
@@ -55,4 +56,5 @@ extern qapi_Status_t uart_debug_cfg(uart_init_config_t* cfg);
 extern qapi_Status_t uart_init(uart_context_t* ctx, const uart_init_config_t* cfg);
 extern qapi_Status_t uart_write_str(uart_context_t ctx,const char* str);
 extern qapi_Status_t uart_write(uart_context_t ctx,const char* str, size_t len);
+extern qapi_Status_t uart_vprintf(uart_context_t ctx, const char* fmt, va_list args);
 extern qapi_Status_t uart_printf(uart_context_t ctx, const char* fmt, ...);

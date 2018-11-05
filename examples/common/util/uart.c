@@ -121,22 +121,24 @@ static int vcb_uart_cb(char* buf, size_t done, void* param) {
 	return 0;
 }
 
-qapi_Status_t uart_printf(uart_context_t ctx, const char* fmt, ...) {
+qapi_Status_t uart_vprintf(uart_context_t ctx, const char* fmt, va_list args) {
 	char buf[256];
-	va_list args;
-	va_start(args, fmt);
 	vcbprintf(buf, sizeof(buf), vcb_uart_cb, ctx, fmt, args);
-	va_end(args);
 	return QAPI_OK;
 }
 #else
-qapi_Status_t uart_printf(uart_context_t ctx, const char* fmt, ...) {
+qapi_Status_t uart_vprintf(uart_context_t ctx, const char* fmt, va_list args) {
 	char buf[256];
-	va_list args;
-	va_start(args, fmt);
 	vsnprintf(buf, sizeof(buf), fmt, args);
-	va_end(args);
 	uart_write_str(ctx, buf);
 	return QAPI_OK;
 }
 #endif
+
+qapi_Status_t uart_printf(uart_context_t ctx, const char* fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	int res = uart_vprintf(ctx, fmt, args);
+	va_end(args);
+	return res;
+}
