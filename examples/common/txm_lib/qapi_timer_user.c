@@ -13,7 +13,26 @@ qapi_Status_t qapi_Timer_Get_Timer_Info(qapi_TIMER_handle_t timer_handle, qapi_T
 }
 
 qapi_Status_t qapi_Timer_Sleep(uint64_t timeout, qapi_TIMER_unit_type unit, qbool_t non_deferrable) {
-	return (qapi_Status_t)_txm_module_system_call12(TXM_QAPI_TIMER_SLEEP, (ULONG)unit, (ULONG)timeout, (ULONG)non_deferrable, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	switch(unit) {
+	case QAPI_TIMER_UNIT_TICK:
+		return (qapi_Status_t)_txm_module_system_call12(TXM_QAPI_TIMER_SLEEP, (ULONG)unit, (ULONG)timeout, (ULONG)non_deferrable, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	case QAPI_TIMER_UNIT_USEC:
+		return (qapi_Status_t)_txm_module_system_call12(TXM_QAPI_TIMER_SLEEP, (ULONG)unit, (ULONG)(timeout*19.2), (ULONG)non_deferrable, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	case QAPI_TIMER_UNIT_MSEC:
+		return (qapi_Status_t)_txm_module_system_call12(TXM_QAPI_TIMER_SLEEP, (ULONG)QAPI_TIMER_UNIT_TICK, (ULONG)timeout*19200, (ULONG)non_deferrable, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	case QAPI_TIMER_UNIT_SEC:
+		for(uint64_t i = 0; i < timeout; i++) {
+			qapi_Status_t res = (qapi_Status_t)_txm_module_system_call12(TXM_QAPI_TIMER_SLEEP, (ULONG)QAPI_TIMER_UNIT_TICK, (ULONG)timeout*19200081, (ULONG)non_deferrable, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+			if(res != QAPI_OK) return res;
+		}
+		return QAPI_OK;
+	case QAPI_TIMER_UNIT_MIN:
+		return qapi_Timer_Sleep(timeout * 60, QAPI_TIMER_UNIT_SEC, non_deferrable);
+	case QAPI_TIMER_UNIT_HOUR:
+		return qapi_Timer_Sleep(timeout * 3600, QAPI_TIMER_UNIT_SEC, non_deferrable);
+	default:
+		return QAPI_ERR_INVALID_PARAM;
+	}
 }
 
 qapi_Status_t qapi_Timer_Stop(qapi_TIMER_handle_t timer_handle) {
