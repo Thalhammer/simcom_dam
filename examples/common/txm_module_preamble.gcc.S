@@ -5,7 +5,7 @@
 .global __txm_module_preamble
 
 @ Define application-specific start/stop entry points for the module
-.extern dam_app_start
+.extern _libc_app_init
 
 @ Define common external refrences
 .extern _txm_module_thread_shell_entry
@@ -41,7 +41,7 @@ __txm_module_preamble:
 															   @		   1 -> MMU protection Enabled
 	.word       _txm_module_thread_shell_entry - __txm_module_preamble                 @ Module Shell Entry Point
 	.p2align 2
-	.word       dam_app_start - __txm_module_preamble                                    @ Module Start Thread Entry Point
+	.word       _libc_app_init - __txm_module_preamble                                    @ Module Start Thread Entry Point
 	.p2align 2
 	.word       0                                                 @ Module Stop Thread Entry Point 
 	.p2align 2

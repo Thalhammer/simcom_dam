@@ -7,7 +7,7 @@
 
     ;    /* Define application-specific start/stop entry points for the module.  */
 
-    IMPORT dam_app_start
+    IMPORT _libc_app_init
 
 
     ;    /* Define common external refrences.  */
@@ -34,7 +34,7 @@ __txm_module_preamble
     ;           2 -> GNU
     ;   Bits 23-0:  Reserved
     DCD       _txm_module_thread_shell_entry - . + .            ; Module Shell Entry Point
-    DCD       dam_app_start - . + .                        ; Module Start Thread Entry Point
+    DCD       _libc_app_init - . + .                        ; Module Start Thread Entry Point
     DCD       0                                                 ; Module Stop Thread Entry Point 
     DCD       140                                               ; Module Start/Stop Thread Priority
     DCD       8192                                              ; Module Start/Stop Thread Stack Size

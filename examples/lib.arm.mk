@@ -1,6 +1,6 @@
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-SRC ?= $(shell find . -name "*.c") $(shell find . -name "*.arm.S")
+SRC ?= $(shell find . -name "*.c") $(shell find . -name "*.cpp") $(shell find . -name "*.arm.S")
 EXCLUDE_SRC =
 FSRC = $(filter-out $(EXCLUDE_SRC), $(SRC))
 OBJ = $(FSRC:=.o)
@@ -16,7 +16,7 @@ AR=$(ARM_TOOLCHAIN)/armar
 FLAGS += -DT_ARM -D__RVCT__ -D_ARM_ASM_ -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_TRACE -DTX_DISABLE_NOTIFY_CALLBACKS -DTX_DAM_QC_CUSTOMIZATIONS -DTARGET_THREADX -D__SIMCOM_DAM__
 FLAGS += -O1 --diag_suppress=9931 --diag_error=warning --cpu=Cortex-A7 --protect_stack --arm_only --apcs=/interwork
 CFLAGS += --c99
-CXXFLAGS +=
+CXXFLAGS += --cpp11
 INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi
 
 include ../config.mk
@@ -59,6 +59,11 @@ $(OUTNAME): $(OBJ)
 	@mkdir -p `dirname $(DEP_DIR)/$@.d`
 	@echo Building $<
 	@$(CC) -c $(FLAGS) $(CFLAGS) $(INC_PATHS) $< -o $@
+
+%.cpp.o: %.cpp
+	@mkdir -p `dirname $(DEP_DIR)/$@.d`
+	@echo Building $<
+	@$(CC) -c $(FLAGS) $(CXXFLAGS) $(INC_PATHS) $< -o $@ --depend=$(DEP_DIR)/$@.d
 
 %.S.o: %.pp.S
 	@echo Building $<

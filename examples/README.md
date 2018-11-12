@@ -21,3 +21,6 @@ Folder                          | Description
 [02-gpio](02-gpio)              | Good old blinking LED. Toogles an LED on GPIO3, to demonstrate basic GPIO usage.
 [03-timer](03-timer)            | Simple example showing how to use timers provided by qapi.
 [04-net](04-net)                | (2G) Cellular example, connects to network and configures DNS based on providers DNS.
+[05-netmgr](05-netmgr)          | (2G) Cellular example, uses util/netmgr to connect to network.
+[06-mqtt](06-mqtt)              | MQTT Example, connects to broker, subscribes to a topic and publishes responses.
+[07-cpp](07-cpp)                | C++ Example, demonstrates working global initializers.

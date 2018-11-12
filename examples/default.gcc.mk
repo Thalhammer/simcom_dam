@@ -1,6 +1,6 @@
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-SRC ?= $(shell find . -name "*.c") $(shell find . -name "*.gcc.S")
+SRC ?= $(shell find . -name "*.c") $(shell find . -name "*.cpp") $(shell find . -name "*.gcc.S")
 EXCLUDE_SRC =
 FSRC = $(filter-out $(EXCLUDE_SRC), $(SRC))
 OBJ = $(FSRC:=.o)
@@ -10,13 +10,14 @@ DAM_INC_BASE=$(SELF_DIR)../api/include
 OUTNAME=$(OUTPUT_PATH)/cust_app
 
 CC=$(GCC_TOOLCHAIN)/arm-none-eabi-gcc
+CXX=$(GCC_TOOLCHAIN)/arm-none-eabi-g++
 LINK=$(GCC_TOOLCHAIN)/arm-none-eabi-ld
 OBJCOPY=$(GCC_TOOLCHAIN)/arm-none-eabi-objcopy
 
 FLAGS += -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_TRACE -DTX_DISABLE_NOTIFY_CALLBACKS -DTX_DAM_QC_CUSTOMIZATIONS -DTARGET_THREADX -D__SIMCOM_DAM__
 FLAGS += -O2 -Wall -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfloat-abi=soft
 CFLAGS +=
-CXXFLAGS +=
+CXXFLAGS += --std=c++11
 INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi -I $(DAM_INC_BASE)/stdlib
 
 include $(SELF_DIR)config.mk
@@ -38,6 +39,7 @@ printcfg:
 	@echo "CFLAGS=          " $(CFLAGS)
 	@echo "CXXFLAGS=        " $(CXXFLAGS)
 	@echo "CC=              " $(CC)
+	@echo "CXX=             " $(CXX)
 	@echo "LINK=            " $(LINK)
 	@echo "OBJCOPY=         " $(OBJCOPY)
 
@@ -58,13 +60,19 @@ $(OUTNAME).bin: $(OUTNAME).elf
 $(OUTNAME).elf: $(OBJ)
 	@mkdir -p $(OUTPUT_PATH)
 	@echo Linking $@
-	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T ../common/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map $^ $(SELF_DIR)/common/bin/lib.a -gc-sections
+	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T ../common/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map $^ $(GCC_TOOLCHAIN)/../lib/gcc/arm-none-eabi/7.3.1/libgcc.a $(SELF_DIR)/common/bin/lib.a -gc-sections
 
 %.c.o: %.c
 	@echo Building $<
 	@$(CC) -c $(FLAGS) $(CFLAGS) $(INC_PATHS) $< -o $@
 	@mkdir -p `dirname $(DEP_DIR)/$@.d`
 	@$(CC) -c $(FLAGS) $(CFLAGS) $(INC_PATHS) -MT '$@' -MM $< > $(DEP_DIR)/$@.d
+
+%.cpp.o: %.cpp
+	@echo Building $<
+	@$(CXX) -c $(FLAGS) $(CXXFLAGS) $(INC_PATHS) $< -o $@
+	@mkdir -p `dirname $(DEP_DIR)/$@.d`
+	@$(CXX) -c $(FLAGS) $(CXXFLAGS) $(INC_PATHS) -MT '$@' -MM $< > $(DEP_DIR)/$@.d
 
 %.S.o: %.pp.S
 	@echo Building $<

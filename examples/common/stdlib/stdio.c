@@ -30,6 +30,22 @@ int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, c
 					}
 					break;
 				}
+				case 'p': {
+					int num = va_arg(args, int);
+					char ibuf[16];
+					itoa(num, ibuf, 16); 
+
+					for(int i = 0; i < 16 && ibuf[i] != '\0'; i++)
+					{
+						if(error == 0) buf[done++] = ibuf[i];
+						if(done == n) {
+							nchars += done;
+							error = cb(buf, done, param);
+							done = 0;
+						}
+					}
+					break;
+				}
 				case 's': {
 					char* str = va_arg(args, char*);
 
