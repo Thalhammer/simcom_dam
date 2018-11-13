@@ -76,7 +76,7 @@ qapi_Status_t uart_init(uart_context_t* ctx, const uart_init_config_t* cfg) {
 
 	res = tx_semaphore_create(&mctx->mtx, "uart_send_mtx", 1);
 	if(res != TX_SUCCESS) {
-		//qapi_UART_Close(&mctx->handle);
+		qapi_UART_Close(&mctx->handle);
 		return res;
 	}
 	*ctx = mctx;

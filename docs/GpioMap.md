@@ -26,3 +26,6 @@ DTR      |    3|        ?| AT UART DTR
 There seems to be a total of 80 GPIO's which can be opened from software, but they are most likely not available in any sensable way.
 Reconfiguring GPIO 4,5,6 or 7 to a Input with pullup seems to crash the module and enter some mode of qualcomms sock, because the USB device disconnects and reappears as 
 "QHSUSB_BULK" Vendor "Qualcomm CDMA Technologies MSN".
+
+## SPI Master
+There is a header for a SPI master device, however trying to open any of the SPI instances causes the module to reset to QHSUSB_BULK mode.

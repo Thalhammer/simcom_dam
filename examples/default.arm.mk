@@ -51,6 +51,12 @@ clean:
 upload: $(OUTNAME).bin
 	@sudo ../../tools/upload $(UPLOAD_DEV) $(OUTNAME).bin
 
+upload-retry: $(OUTNAME).bin
+	@until sudo ../../tools/upload $(UPLOAD_DEV) $(OUTNAME).bin; \
+	do \
+		sleep 0.5; \
+	done;
+
 $(OUTNAME).bin: $(OUTNAME).elf
 	@echo Generating $@
 	@$(FROMELF) --bincombined $< --output $@

@@ -403,7 +403,7 @@ qapi_Status_t qapi_SPIM_Close (void *spi_handle);
                                                                     (ULONG)spi_Handle, (ULONG)config, \
                                                                     (ULONG)desc, (ULONG) num_Descriptors, \
 									                                (ULONG) c_Fn, (ULONG)c_Ctxt, (ULONG) get_timestamp)																		
-#define qapi_SPIM_Close(spi_handle)          \
+#define qapi_SPIM_Close(spi_Handle)          \
                                                                    (UINT) _txm_module_system_call4( \
                                                                     TXM_QAPI_SPI_CLOSE, \
                                                                     (ULONG) spi_Handle, (ULONG) 0,(ULONG) 0, \
