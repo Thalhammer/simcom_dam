@@ -66,7 +66,7 @@ $(OUTNAME).bin: $(OUTNAME).elf
 $(OUTNAME).elf: $(OBJ)
 	@mkdir -p $(OUTPUT_PATH)
 	@echo Linking $@
-	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T ../common/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map $^ $(GCC_TOOLCHAIN)/../lib/gcc/arm-none-eabi/7.3.1/libgcc.a $(SELF_DIR)/common/bin/lib.a -gc-sections
+	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T ../common/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map --start-group $^ $(SELF_DIR)/common/bin/lib.a $(GCC_TOOLCHAIN)/../lib/gcc/arm-none-eabi/7.3.1/libgcc.a --end-group -gc-sections
 
 %.c.o: %.c
 	@echo Building $<

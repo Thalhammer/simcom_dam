@@ -1,5 +1,15 @@
 #include "stdio.h"
 #include "stdlib.h"
+#include "string.h"
+
+#define VCB_PUTCHAR(x) do { \
+	if(error == 0) buf[done++] = (x); \
+	if(done == n) { \
+		nchars += done; \
+		error = cb(buf, done, param); \
+		done = 0; \
+	} \
+} while(0)
 
 int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, const char* format, va_list args) {
 	int nchars = 0;
@@ -21,12 +31,30 @@ int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, c
 
 					for(int i = 0; i < 16 && ibuf[i] != '\0'; i++)
 					{
-						if(error == 0) buf[done++] = ibuf[i];
-						if(done == n) {
-							nchars += done;
-							error = cb(buf, done, param);
-							done = 0;
-						}
+						VCB_PUTCHAR(ibuf[i]);
+					}
+					break;
+				}
+				case 'f': {
+					double num = va_arg(args, double);
+					char ibuf[16 + 1 + 6];
+					memset(ibuf, 0, sizeof(ibuf));
+					itoa((int)num, ibuf, 10);
+
+					// Remove integer part
+					num = num - (int)num;
+					ibuf[16] = '.';
+
+					for(int i=0; i<5; i++) {
+						int c = num*10;
+						num = num*10 - c;
+						ibuf[i + 17] = '0' + c;
+					}
+
+					for(int i = 0; i < sizeof(ibuf); i++)
+					{
+						if(ibuf[i] == '\0') continue;
+						VCB_PUTCHAR(ibuf[i]);
 					}
 					break;
 				}
@@ -37,12 +65,7 @@ int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, c
 
 					for(int i = 0; i < 16 && ibuf[i] != '\0'; i++)
 					{
-						if(error == 0) buf[done++] = ibuf[i];
-						if(done == n) {
-							nchars += done;
-							error = cb(buf, done, param);
-							done = 0;
-						}
+						VCB_PUTCHAR(ibuf[i]);
 					}
 					break;
 				}
@@ -51,43 +74,23 @@ int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, c
 
 					while(*str != '\0')
 					{
-						if(error == 0) buf[done++] = *str++;
-						if(done == n) {
-							nchars += done;
-							error = cb(buf, done, param);
-							done = 0;
-						}
+						VCB_PUTCHAR(*str++);
 					}
 					break;
 				}
 				case 'c': {
 					char ch = va_arg(args, int);
-					if(error == 0) buf[done++] = ch;
-					if(done == n) {
-						nchars += done;
-						error = cb(buf, done, param);
-						done = 0;
-					}
+					VCB_PUTCHAR(ch);
 					break;
 				}
 				case '%': {
-					if(error == 0) buf[done++] = '%';
-					if(done == n) {
-						nchars += done;
-						error = cb(buf, done, param);
-						done = 0;
-					}
+					VCB_PUTCHAR('%');
 				}
 				default:
 					break;
 			}
 		} else {
-			if(error == 0) buf[done++] = *format++;
-			if(done == n) {
-				nchars += done;
-				error = cb(buf, done, param);
-				done = 0;
-			}
+			VCB_PUTCHAR(*format++);
 		}
 	}
 	if(error == 0) buf[done] = '\0';
@@ -98,6 +101,7 @@ int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, c
 	}
 	return nchars;
 }
+#undef VCB_PUTCHAR
 
 static int vsnprintf_cb(char* buf, size_t done, void* param) {
 	return 1;
