@@ -4,7 +4,6 @@
 #include "qapi/qapi_types.h"
 #include "qapi/qapi.h"
 #include "qapi/qapi_status.h"
-#include "util/boot_cfg.h"
 #include "qapi/qapi_tlmm.h"
 #include "qapi/qapi_timer.h"
 #include "qapi/qapi_socket.h"
@@ -15,6 +14,7 @@
 #include "util/trace.h"
 #include "util/netmgr.h"
 #include "util/htons.h"
+#include "util/boot_cfg.h"
 #include "stdio.h"
 #include "txm_module.h"
 
@@ -83,7 +83,7 @@ static void constate_changed(netmgr_constate_t s) {
 
 int dam_app_start(void)
 {
-	//if(boot_cfg() != 0) return TX_SUCCESS;
+	if(boot_cfg() != 0) return TX_SUCCESS;
 	if(debug_init() != 0) return TX_SUCCESS;
 
 	TRACE("starting network\r\n");

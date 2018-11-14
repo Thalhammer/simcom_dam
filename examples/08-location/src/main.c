@@ -7,6 +7,7 @@
 #include "qapi/qapi_location.h"
 #include "util/debug.h"
 #include "util/trace.h"
+#include "util/boot_cfg.h"
 
 #include "tx_api.h"
 
@@ -97,6 +98,7 @@ static void loc_tracking_cb(qapi_Location_t loc)
 
 int dam_app_start(void)
 {
+	if(boot_cfg() != 0) return TX_SUCCESS;
 	if(debug_init() != QAPI_OK) return TX_SUCCESS;
 	TRACE("waiting some time\r\n");
 	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);

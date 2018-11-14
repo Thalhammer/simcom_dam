@@ -5,6 +5,7 @@
 #include "qapi/qapi_status.h"
 #include "qapi_timer.h"
 #include "util/uart.h"
+#include "util/boot_cfg.h"
 
 #include "tx_api.h"
 
@@ -19,6 +20,7 @@ uint8_t uart_buf[256];
 
 int dam_app_start(void)
 {
+	if(boot_cfg() != 0) return TX_SUCCESS;
 	i=0;
 	uart_init_config_t uartcfg;
 	uart_default_cfg(&uartcfg);

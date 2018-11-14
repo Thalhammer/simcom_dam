@@ -9,6 +9,7 @@
 #include "qapi/qapi_ns_utils.h"
 #include "qapi/qapi_timer.h"
 #include "util/uart.h"
+#include "util/boot_cfg.h"
 
 #include "tx_api.h"
 
@@ -153,6 +154,7 @@ static void reconnect_cb(uint32_t udata) {
 
 int dam_app_start(void)
 {
+	if(boot_cfg() != 0) return TX_SUCCESS;
 	uart_init_config_t uartcfg;
 	uart_default_cfg(&uartcfg);
 	uartcfg.buf = uart_buf;
