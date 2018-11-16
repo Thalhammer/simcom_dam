@@ -92,15 +92,18 @@ typedef enum
 
 /** PMIC's version of the Julian time structure.
 */
+/**
+ * This had the wrong types in the original library (uint64_t instead of uint16_t).
+ */
 typedef struct qapi_PM_Rtc_Julian_Type_s
 {
-   uint64_t year;            /**< Year [1980 to 2100]. */
-   uint64_t month;           /**< Month of the year [1 to 12]. */
-   uint64_t day;             /**< Day of the month [1 to 31]. */
-   uint64_t hour;            /**< Hour of the day [0 to 23]. */
-   uint64_t minute;          /**< Minute of the hour [0 to 59]. */
-   uint64_t second;          /**< Second of the minute [0 to 59]. */
-   uint64_t day_of_week;     /**< Day of the week [0 to 6]; Monday through Sunday. */
+   uint16_t year;            /**< Year [1980 to 2100]. */
+   uint16_t month;           /**< Month of the year [1 to 12]. */
+   uint16_t day;             /**< Day of the month [1 to 31]. */
+   uint16_t hour;            /**< Hour of the day [0 to 23]. */
+   uint16_t minute;          /**< Minute of the hour [0 to 59]. */
+   uint16_t second;          /**< Second of the minute [0 to 59]. */
+   uint16_t day_of_week;     /**< Day of the week [0 to 6]; Monday through Sunday. */
 } qapi_PM_Rtc_Julian_Type_t;
 
 /** RTC alarms. */

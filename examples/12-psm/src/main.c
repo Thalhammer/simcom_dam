@@ -56,6 +56,7 @@ int dam_app_start(void)
 	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
 	TRACE("init\r\n");
 
+	// It seems like RTC needs to be initialized or the module will enter PSM but never return.
 	int res = qapi_PM_Rtc_Init();
 	if(res != QAPI_OK) {
 		TRACE("failed to init rtc: %d\r\n", res);
