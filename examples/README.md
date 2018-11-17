@@ -31,3 +31,4 @@ Folder                          | Description
 [12-psm](12-psm)                | PSM Deep sleep example
 [13-rtc](13-rtc)                | RTC Example
 [14-sleep](14-sleep)            | Sleep mode example
+[15-vat](15-vat)                | Visual AT (AT commands from inside DAM) Example 
