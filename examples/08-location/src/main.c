@@ -120,12 +120,12 @@ int dam_app_start(void)
 
 	qapi_loc_client_id clientid;
 	uint32_t sessionid;
-	qapi_Location_Error_t err = qapi_Loc_Init(&clientid, &cbs);
+	qapi_Location_Error_t err = (qapi_Location_Error_t)qapi_Loc_Init(&clientid, &cbs);
 	if(err != QAPI_LOCATION_ERROR_SUCCESS) {
 		TRACE("failed to init location: %s\r\n", error_map[err]);
 		return TX_SUCCESS;
 	} else TRACE("location initialized\r\n");
-	err = qapi_Loc_Start_Tracking(clientid, &opts, &sessionid);
+	err = (qapi_Location_Error_t)qapi_Loc_Start_Tracking(clientid, &opts, &sessionid);
 	if(err != QAPI_LOCATION_ERROR_SUCCESS) {
 		TRACE("failed to start tracking: %s\r\n", error_map[err]);
 		return TX_SUCCESS;

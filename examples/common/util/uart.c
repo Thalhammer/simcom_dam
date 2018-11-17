@@ -13,6 +13,7 @@ struct uart_context_s {
 	int send_buf_len;
 	qapi_UART_Handle_t handle;
 	TX_SEMAPHORE mtx;
+	int is_off;
 	char* sendbuf;
 };
 
@@ -60,6 +61,7 @@ qapi_Status_t uart_init(uart_context_t* ctx, const uart_init_config_t* cfg) {
 	uart_context_t mctx = (uart_context_t)cfg->buf;
 	mctx->sendbuf = (char*)cfg->buf + sizeof(struct uart_context_s);
 	mctx->send_buf_len = cfg->buf_len - sizeof(struct uart_context_s);
+	mctx->is_off = false;
 
 	qapi_UART_Open_Config_t open_properties;
 	memset (&open_properties, 0, sizeof(open_properties));
@@ -91,6 +93,7 @@ qapi_Status_t uart_write_str(uart_context_t ctx, const char* str) {
 
 qapi_Status_t uart_write(uart_context_t ctx, const char* str, size_t len) {
 	if(ctx == NULL || str == NULL) return QAPI_ERR_INVALID_PARAM;
+	if(ctx->is_off) return QAPI_OK;
 
 	if(len > ctx->send_buf_len) {
 		while(true) {
@@ -141,4 +144,16 @@ qapi_Status_t uart_printf(uart_context_t ctx, const char* fmt, ...) {
 	int res = uart_vprintf(ctx, fmt, args);
 	va_end(args);
 	return res;
+}
+
+qapi_Status_t uart_power_off(uart_context_t ctx) {
+	tx_semaphore_get(&ctx->mtx, TX_WAIT_FOREVER);
+	tx_semaphore_put(&ctx->mtx);
+	ctx->is_off = 1;
+	return qapi_UART_Power_Off(ctx->handle);
+}
+
+qapi_Status_t uart_power_on(uart_context_t ctx) {
+	ctx->is_off = 0;
+	return qapi_UART_Power_On(ctx->handle);
 }

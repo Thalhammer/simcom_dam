@@ -26,13 +26,17 @@ int boot_cfg(void) {
 	tlmm_config.pin = BOOT_CFG_PIN;
 
 	status = qapi_TLMM_Config_Gpio(gpio_id, &tlmm_config);
-	if(status != QAPI_OK) return 2;
+	if(status != QAPI_OK) return 3;
+	tlmm_config.pin = BOOT_CFG_PIN;
 
 	// Wait some time to make sure the pin stabilized
 	tx_thread_sleep(10);
 
 	status = qapi_TLMM_Read_Gpio(gpio_id, BOOT_CFG_PIN, &val);
-	if(status != QAPI_OK) return 2;
+	if(status != QAPI_OK) return 4;
+
+	status = qapi_TLMM_Release_Gpio_ID(&tlmm_config, gpio_id);
+	if(status != QAPI_OK) return 5;
 
 	if(val == QAPI_GPIO_LOW_VALUE_E) return 1;
 	return 0;

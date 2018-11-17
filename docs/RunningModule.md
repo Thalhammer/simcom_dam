@@ -58,3 +58,8 @@ Make sure you did upload it to the correct filesystem and you named it correctly
 ### My module reboots and appears as QHSUSB_BULK
 Most likely your DAM crashes before initialisation is done or you really screwed up the header.
 Take a look at [debricking](Debricking.md) to find out how to recover.
+### API calls do not work as expected
+If some of the api calls do not work as expected, try reflashing the firmware (not your module, the actual modem
+firmware). Take a look at [debricking](Debricking.md) on how this can be done. Even if your module seems to work fine,
+there might be something wrong that causes this behaviour. I had the case where the builtin mqtt client ignored the supplied clientid
+and always used an empty value. After reflashing the firmware and retrying the exact same dam module (not even rebuilt) it worked fine.

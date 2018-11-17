@@ -58,3 +58,6 @@ extern qapi_Status_t uart_write_str(uart_context_t ctx,const char* str);
 extern qapi_Status_t uart_write(uart_context_t ctx,const char* str, size_t len);
 extern qapi_Status_t uart_vprintf(uart_context_t ctx, const char* fmt, va_list args);
 extern qapi_Status_t uart_printf(uart_context_t ctx, const char* fmt, ...);
+
+extern qapi_Status_t uart_power_off(uart_context_t ctx);
+extern qapi_Status_t uart_power_on(uart_context_t ctx);

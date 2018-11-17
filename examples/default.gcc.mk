@@ -13,6 +13,7 @@ CC=$(GCC_TOOLCHAIN)/arm-none-eabi-gcc
 CXX=$(GCC_TOOLCHAIN)/arm-none-eabi-g++
 LINK=$(GCC_TOOLCHAIN)/arm-none-eabi-ld
 OBJCOPY=$(GCC_TOOLCHAIN)/arm-none-eabi-objcopy
+SIZE=$(GCC_TOOLCHAIN)/arm-none-eabi-size
 
 FLAGS += -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_TRACE -DTX_DISABLE_NOTIFY_CALLBACKS -DTX_DAM_QC_CUSTOMIZATIONS -DTARGET_THREADX -D__SIMCOM_DAM__
 FLAGS += -O2 -Wall -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfloat-abi=soft
@@ -49,6 +50,9 @@ clean:
 	@rm -f $(OBJ)
 	@rm -rf $(DEP_DIR)
 	@echo "Done."
+
+size: $(OUTNAME).elf
+	@$(SIZE) $(OUTNAME).elf
 
 upload: $(OUTNAME).bin
 	@sudo ../../tools/upload $(UPLOAD_DEV) $(OUTNAME).bin
