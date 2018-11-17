@@ -24,3 +24,10 @@ Folder                          | Description
 [05-netmgr](05-netmgr)          | (2G) Cellular example, uses util/netmgr to connect to network.
 [06-mqtt](06-mqtt)              | MQTT Example, connects to broker, subscribes to a topic and publishes responses.
 [07-cpp](07-cpp)                | C++ Example, demonstrates working global initializers.
+[08-location](08-location)      | GNSS Example, tracking mode
+[09-locationbatching](09-locationbatching)  | GNSS Example, batching mode
+[10-filesystem](10-filesystem)  | Filesystem example, write and read file
+[11-deviceinfo](11-deviceinfo)  | Deviceinfo example
+[12-psm](12-psm)                | PSM Deep sleep example
+[13-rtc](13-rtc)                | RTC Example
+[14-sleep](14-sleep)            | Sleep mode example
