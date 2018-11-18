@@ -44,3 +44,32 @@ void* memcpy(void* destination, const void* source, size_t num) {
 	}
 	return destination;
 }
+
+int memcmp(const void* destination, const void* source, size_t num) {
+	const size_t mult4 = num/4;
+	for(size_t i=0; i<mult4; i++) {
+		if(((uint32_t*)destination)[i] != ((uint32_t*)source)[i]) return ((uint32_t*)destination)[i] - ((uint32_t*)source)[i];
+	}
+	switch(num%4) {
+		case 3:
+			if(((uint8_t*)destination)[num - 3] != ((uint8_t*)source)[num - 3]) return (((uint8_t*)destination)[num - 3] - ((uint8_t*)source)[num - 3]);
+		case 2:
+			if(((uint8_t*)destination)[num - 2] != ((uint8_t*)source)[num - 2]) return (((uint8_t*)destination)[num - 2] - ((uint8_t*)source)[num - 2]);
+		case 1:
+			if(((uint8_t*)destination)[num - 1] != ((uint8_t*)source)[num - 1]) return (((uint8_t*)destination)[num - 1] - ((uint8_t*)source)[num - 1]);
+		case 0:
+			break;
+	}
+	return 0;
+}
+
+int strcmp(const char* str1, const char* str2) {
+	while(*str1 != '\0' && *str1 == *str2) { str1++; str2++; }
+	return *str1 - *str2;
+}
+
+char* strchr(const char* str, int c) {
+	while(*str != '\0' && *str != c) str++;
+	if(*str != c) return NULL;
+	return (char*)str;
+}

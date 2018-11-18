@@ -39,7 +39,7 @@ int dam_app_start(void)
 	TRACE("init\r\n");
 
 	res = qapi_DAM_Visual_AT_Open((void*)vat_dtr);
-
+	(void)res;
 	vat_write("ATE0\r\n");
 	vat_write("AT+CPSI?\r\n");
 
