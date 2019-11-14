@@ -13,6 +13,7 @@ uart_context_t uart;
 int i;
 
 void timer_test_cb(uint32_t udata) {
+	(void)udata;
 	uart_printf(uart, "cb %d\r\n", i++);
 }
 

@@ -46,7 +46,7 @@ typedef struct uart_init_config_s {
 	void(*rxCb)(uint32_t num_bytes, void *cb_data);
 	UART_Port_e port;
 	uint8_t* buf;
-	int buf_len;
+	uint32_t buf_len;
 } uart_init_config_t;
 
 extern qapi_Status_t uart_required_buf(int* bufsize, int sendbuf);

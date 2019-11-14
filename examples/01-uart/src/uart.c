@@ -13,10 +13,12 @@
 
 static char send_buf[UART_SENDBUF_SIZE];
 static qapi_UART_Handle_t uart_handle;
-static TX_SEMAPHORE uart_mtx;
+static TX_SEMAPHORE* uart_mtx;
 
 static void tx_cb(uint32_t num_bytes, void *cb_data) {
-	tx_semaphore_put(&uart_mtx);
+	(void)num_bytes;
+	(void)cb_data;
+	tx_semaphore_put(uart_mtx);
 }
 
 void uart_init(void) {
@@ -28,7 +30,8 @@ void uart_init(void) {
 	open_properties.bits_Per_Char= QAPI_UART_8_BITS_PER_CHAR_E;
 	open_properties.tx_CB_ISR = tx_cb;
 	qapi_UART_Open(&uart_handle, QAPI_UART_PORT_003_E, &open_properties);
-	tx_semaphore_create(&uart_mtx, "uart_send_mtx", 1);
+	if(txm_module_object_allocate(&uart_mtx, sizeof(TX_SEMAPHORE)) != TX_SUCCESS) return;
+	if(tx_semaphore_create(uart_mtx, "uart_send_mtx", 1) != TX_SUCCESS) return;
 }
 
 void uart_write_str(const char* str) {
@@ -49,7 +52,7 @@ void uart_write(const char* str, size_t len) {
 		}
 	} else {
 		// Lock semaphore
-		tx_semaphore_get(&uart_mtx, TX_WAIT_FOREVER);
+		tx_semaphore_get(uart_mtx, TX_WAIT_FOREVER);
 		// Copy data to send buffer
 		memset(send_buf, 0, UART_SENDBUF_SIZE);
 		memcpy(send_buf, (char*)str, len);

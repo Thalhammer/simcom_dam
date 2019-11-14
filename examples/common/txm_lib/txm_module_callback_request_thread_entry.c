@@ -6,6 +6,8 @@ void _txm_module_callback_request_thread_entry(ULONG id) {
 	// parameter seems to be unused in original code ?
 	// r0 is overwritten right after entry
 	// but it is in the prototype, so we include it here
+	(void)id;
+
 	TXM_MODULE_CALLBACK_NOTIFY notify;
 	int ret;
 	TX_QUEUE* req_queue = _txm_module_entry_info->txm_module_thread_entry_info_callback_request_queue;

@@ -28,6 +28,11 @@ static qapi_DSS_Hndl_t dss_handle;
 static qapi_Status_t net_connect(void);
 static int reconnect;
 
+static int strlen_wrapper(const char* str) {
+	if(str != NULL) return strlen(str);
+	return 0;
+}
+
 static void net_cb(
 	qapi_DSS_Hndl_t hndl, /* Handle for which this event is associated */
 	void *user_data, /* Application-provided user data */
@@ -35,6 +40,9 @@ static void net_cb(
 	qapi_DSS_Evt_Payload_t *payload_ptr /* Associated event information */
 )
 {
+	(void)hndl;
+	(void)user_data;
+	(void)payload_ptr;
 	// Network is now available
 	if(evt == QAPI_DSS_EVT_NET_IS_CONN_E)
 	{
@@ -131,13 +139,15 @@ static qapi_Status_t net_connect(void) {
 #endif
 #ifdef USER
 		param_info.buf_val = (char*)USER;
-		param_info.num_val = strlen(USER);
-		CHECK(qapi_DSS_Set_Data_Call_Param(dss_handle, QAPI_DSS_CALL_INFO_USERNAME_E, &param_info));
+		param_info.num_val = strlen_wrapper(USER);
+		if(USER != NULL)
+			CHECK(qapi_DSS_Set_Data_Call_Param(dss_handle, QAPI_DSS_CALL_INFO_USERNAME_E, &param_info));
 #endif
 #ifdef PASS
 		param_info.buf_val = (char*)PASS;
-		param_info.num_val = strlen(PASS);
-		CHECK(qapi_DSS_Set_Data_Call_Param(dss_handle, QAPI_DSS_CALL_INFO_PASSWORD_E, &param_info));
+		param_info.num_val = strlen_wrapper(PASS);
+		if(PASS != NULL)
+			CHECK(qapi_DSS_Set_Data_Call_Param(dss_handle, QAPI_DSS_CALL_INFO_PASSWORD_E, &param_info));
 #endif
 		CHECK(qapi_DSS_Start_Data_Call(dss_handle));
 	}
@@ -145,6 +155,7 @@ static qapi_Status_t net_connect(void) {
 }
 
 static void reconnect_cb(uint32_t udata) {
+	(void)udata;
 	// Called in a regular interval to trigger reconnecting
 	if(reconnect == 1) {
 		reconnect = 0;

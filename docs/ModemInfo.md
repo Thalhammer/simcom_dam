@@ -9,7 +9,7 @@ Simcom's SIM7000E module seems to be based on the [MDM9206](https://www.qualcomm
 * 1 Fully usable UART
 * TX only UART
 * Builtin TCP/IP, MQTT, HTTP, CoAP, LWM2M stacks
-* Operational directly form single cell lipo
+* Operational directly from single cell lipo
 * Builtin LDO regulator to supply external electronics
 * &gt;16MB flash filesystem
 * Embedded OS with support for threading, memory management, etc (ThreadX ?)

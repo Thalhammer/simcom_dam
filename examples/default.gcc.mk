@@ -16,9 +16,9 @@ OBJCOPY=$(GCC_TOOLCHAIN)/arm-none-eabi-objcopy
 SIZE=$(GCC_TOOLCHAIN)/arm-none-eabi-size
 
 FLAGS += -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_TRACE -DTX_DISABLE_NOTIFY_CALLBACKS -DTX_DAM_QC_CUSTOMIZATIONS -DTARGET_THREADX -D__SIMCOM_DAM__
-FLAGS += -O2 -Wall -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfloat-abi=soft
+FLAGS += -O2 -Wall -Wextra -Werror -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfloat-abi=soft
 CFLAGS +=
-CXXFLAGS += --std=c++11
+CXXFLAGS += --std=c++11 -fno-exceptions -fno-rtti
 INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi -I $(DAM_INC_BASE)/stdlib
 
 include $(SELF_DIR)config.mk
@@ -43,6 +43,7 @@ printcfg:
 	@echo "CXX=             " $(CXX)
 	@echo "LINK=            " $(LINK)
 	@echo "OBJCOPY=         " $(OBJCOPY)
+	@echo "SIZE=            " $(SIZE)
 
 clean:
 	@echo "Cleaning..."
@@ -70,7 +71,7 @@ $(OUTNAME).bin: $(OUTNAME).elf
 $(OUTNAME).elf: $(OBJ)
 	@mkdir -p $(OUTPUT_PATH)
 	@echo Linking $@
-	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T ../common/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map --start-group $^ $(SELF_DIR)/common/bin/lib.a $(GCC_TOOLCHAIN)/../lib/gcc/arm-none-eabi/7.3.1/libgcc.a --end-group -gc-sections
+	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T ../common/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map --start-group $^ $(SELF_DIR)/common/bin/lib.a $(GCC_TOOLCHAIN)/../lib/gcc/arm-none-eabi/7.3.1/libgcc.a --end-group -gc-sections -z defs --print-memory-usage
 
 %.c.o: %.c
 	@echo Building $<

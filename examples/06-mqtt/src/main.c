@@ -26,6 +26,11 @@ static qapi_Net_MQTT_Hndl_t mqtt_client;
 
 static void mqtt_msgcb(qapi_Net_MQTT_Hndl_t mqtt, int32_t reason, const uint8_t* topic, int32_t topic_length,
 						const uint8_t* msg, int32_t msg_length, int32_t qos, const void* sid) {
+	(void)reason;
+	(void)topic;
+	(void)topic_length;
+	(void)qos;
+	(void)sid;
 	char reply[128];
 	memset(reply, 0, 128);
 	memcpy(reply, "Reply ", 6);
@@ -39,6 +44,7 @@ static void mqtt_msgcb(qapi_Net_MQTT_Hndl_t mqtt, int32_t reason, const uint8_t*
 }
 
 static void mqtt_concb(qapi_Net_MQTT_Hndl_t mqtt, int32_t reason) {
+	(void)reason;
 	TRACE("connected to mqtt\r\n");
 	int res = qapi_Net_MQTT_Subscribe(mqtt, "test/echo", 1);
 	if(res != QAPI_OK) TRACE("failed to subscribe to topic\r\n");
@@ -85,6 +91,8 @@ int dam_app_start(void)
 {
 	if(boot_cfg() != 0) return TX_SUCCESS;
 	if(debug_init() != 0) return TX_SUCCESS;
+	TRACE("waiting some time\r\n");
+	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
 
 	TRACE("starting network\r\n");
 	if(netmgr_init() != 0) {

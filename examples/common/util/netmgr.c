@@ -17,7 +17,7 @@ static const char* _netmgr_user;
 static const char* _netmgr_pass;
 static netmgr_constate_cb_t _netmgr_constate_cb;
 static qapi_TIMER_handle_t _netmgr_reconnect_timer;
-static TX_BYTE_POOL _netmgr_pool;
+static TX_BYTE_POOL* _netmgr_pool;
 static UCHAR _netmgr_pool_storage[2048];
 
 static void _netmgr_dss_cb(
@@ -27,10 +27,12 @@ static void _netmgr_dss_cb(
 	qapi_DSS_Evt_Payload_t *payload_ptr /* Associated event information */
 )
 {
+	(void)hndl;
+	(void)user_data;
+	(void)payload_ptr;
 	int done = 0;
 
-	if(evt == QAPI_DSS_EVT_NET_IS_CONN_E)
-	{
+	if(evt == QAPI_DSS_EVT_NET_IS_CONN_E) {
 		// Early out if we were already connected
 		if (_netmgr_constate == NETMGR_connected)
 			return;
@@ -51,30 +53,30 @@ static void _netmgr_dss_cb(
 			TRACE("number of ip addresses: %d\r\n", len);
 
 			qapi_DSS_Addr_Info_t* info_ptr;
-			if(tx_byte_allocate(&_netmgr_pool, &info_ptr, sizeof(qapi_DSS_Addr_Info_t) * len, TX_NO_WAIT) != TX_SUCCESS)
+			if(tx_byte_allocate(_netmgr_pool, &info_ptr, sizeof(qapi_DSS_Addr_Info_t) * len, TX_NO_WAIT) != TX_SUCCESS)
 				info_ptr = NULL;
 			
 			memset(info_ptr, 0, sizeof(qapi_DSS_Addr_Info_t) * len);
 
 			if (info_ptr != NULL && qapi_DSS_Get_IP_Addr(_netmgr_dss_handle,info_ptr,len) == QAPI_OK)
 			{
-				for(int i=0; i<len; i++) {
-					char dp_v4[16];
-					char ds_v4[16];
+				for(uint32_t i=0; i < len; i++) {
+					char dns_primary_v4[16];
+					char dns_secondary_v4[16];
 					char ip_v4[16];
 					char gateway_v4[16];
 					if((NULL != inet_ntop(AF_INET,&info_ptr[i].iface_addr_s.addr.v4,ip_v4,sizeof(ip_v4)))
 						&&(NULL != inet_ntop(AF_INET,&info_ptr[i].gtwy_addr_s.addr.v4,gateway_v4,sizeof(gateway_v4)))
-						&&(NULL != inet_ntop(AF_INET,&info_ptr[i].dnsp_addr_s.addr.v4,dp_v4,sizeof(dp_v4)))
-						&&(NULL != inet_ntop(AF_INET,&info_ptr[i].dnss_addr_s.addr.v4,ds_v4,sizeof(ds_v4))))
+						&&(NULL != inet_ntop(AF_INET,&info_ptr[i].dnsp_addr_s.addr.v4,dns_primary_v4,sizeof(dns_primary_v4)))
+						&&(NULL != inet_ntop(AF_INET,&info_ptr[i].dnss_addr_s.addr.v4,dns_secondary_v4,sizeof(dns_secondary_v4))))
 					{
 						TRACE("[%d]ip address:  %s\r\n", i, ip_v4);
 						TRACE("[%d]gateway:     %s\r\n", i, gateway_v4);
-						TRACE("[%d]dns servers: %s %s\r\n", i, dp_v4, ds_v4);
+						TRACE("[%d]dns servers: %s %s\r\n", i, dns_primary_v4, dns_secondary_v4);
 						// Use the first dns server for client
 						if(i == 0) {
-							if((0 == qapi_Net_DNSc_Add_Server(dp_v4, QAPI_NET_DNS_ANY_SERVER_ID) )
-								&& (0 == qapi_Net_DNSc_Add_Server(ds_v4, QAPI_NET_DNS_ANY_SERVER_ID))) {
+							if((0 == qapi_Net_DNSc_Add_Server(dns_primary_v4, QAPI_NET_DNS_ANY_SERVER_ID) )
+								&& (0 == qapi_Net_DNSc_Add_Server(dns_secondary_v4, QAPI_NET_DNS_ANY_SERVER_ID))) {
 								done = 1;
 							}
 						}
@@ -96,9 +98,7 @@ static void _netmgr_dss_cb(
 
 		if(_netmgr_constate_cb!=NULL)
 			_netmgr_constate_cb(_netmgr_constate);
-	}
-	else
-	{
+	} else if(evt == QAPI_DSS_EVT_NET_NO_NET_E) {
 		if (_netmgr_constate == NETMGR_disconnected)
 			return;
 		_netmgr_constate = NETMGR_disconnected;
@@ -110,6 +110,16 @@ static void _netmgr_dss_cb(
 
 		if(_netmgr_constate_cb!=NULL)
 			_netmgr_constate_cb(_netmgr_constate);
+	} else if(evt == QAPI_DSS_EVT_NET_RECONFIGURED_E) {
+		TRACE("network call reconfigured\r\n");
+	} else if(evt == QAPI_DSS_EVT_NET_NEWADDR_E) {
+		TRACE("network got new ip\r\n");
+	} else if(evt == QAPI_DSS_EVT_NET_DELADDR_E) {
+		TRACE("network lost ip\r\n");
+	} else if(evt == QAPI_DSS_EVT_NIPD_DL_DATA_E) {
+		TRACE("QAPI_DSS_EVT_NIPD_DL_DATA_E\r\n");
+	} else {
+		TRACE("unknown network event %d\r\n", evt);
 	}
 }
 
@@ -128,7 +138,12 @@ int netmgr_init(void) {
 	_netmgr_pass = NULL;
 	_netmgr_constate_cb = NULL;
 	_netmgr_reconnect_timer = NULL;
-	tx_byte_pool_create(&_netmgr_pool, "netmgr_pool", _netmgr_pool_storage, 2048);
+	// TODO: Typesafe txm_module_object_allocate
+	if(txm_module_object_allocate((void**)&_netmgr_pool, sizeof(TX_BYTE_POOL)) != TX_SUCCESS) return QAPI_ERR_NO_MEMORY;
+	if(tx_byte_pool_create(&_netmgr_pool, "netmgr_pool", _netmgr_pool_storage, 2048) != TX_SUCCESS) {
+		txm_module_object_deallocate(_netmgr_pool);
+		return QAPI_ERR_NO_MEMORY;
+	}
 	return QAPI_OK;
 }
 
@@ -147,20 +162,20 @@ int netmgr_connect(const char* APN, const char* user, const char* pw) {
 
 	// Duplicate arguments
 	if(len_apn != 0) {
-		if(tx_byte_allocate(&_netmgr_pool, &buf_apn, len_apn + 1, TX_NO_WAIT) != TX_SUCCESS || buf_apn == NULL) {
+		if(tx_byte_allocate(_netmgr_pool, &buf_apn, len_apn + 1, TX_NO_WAIT) != TX_SUCCESS || buf_apn == NULL) {
 			TRACE("failed to alloc memory for apn\r\n");
 			return QAPI_ERR_NO_MEMORY;
 		} else memcpy(buf_apn, APN, len_apn + 1);
 	}
 	if(len_user != 0) {
-		if(tx_byte_allocate(&_netmgr_pool, &buf_user, len_user + 1, TX_NO_WAIT) != TX_SUCCESS || buf_user == NULL) {
+		if(tx_byte_allocate(_netmgr_pool, &buf_user, len_user + 1, TX_NO_WAIT) != TX_SUCCESS || buf_user == NULL) {
 			TRACE("failed to alloc memory for user\r\n");
 			if(buf_apn) tx_byte_release(buf_apn);
 			return QAPI_ERR_NO_MEMORY;
 		} else memcpy(buf_user, user, len_user + 1);
 	}
 	if(len_pw != 0) {
-		if(tx_byte_allocate(&_netmgr_pool, &buf_pw, len_pw + 1, TX_NO_WAIT) != TX_SUCCESS || buf_pw == NULL) {
+		if(tx_byte_allocate(_netmgr_pool, &buf_pw, len_pw + 1, TX_NO_WAIT) != TX_SUCCESS || buf_pw == NULL) {
 			TRACE("failed to alloc memory for pw\r\n");
 			if(buf_apn) tx_byte_release(buf_apn);
 			if(buf_user) tx_byte_release(buf_user);

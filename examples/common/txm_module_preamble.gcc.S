@@ -65,7 +65,7 @@ __txm_module_preamble:
 	.word (Image$$ER_RW$$Length)                                 @ Reserved 1
 #else
 	.p2align 2
-	.word       0x32000                                            @ Module Data Size - default to 16K (need to make sure this is large enough for module's data needs!)
+	.word       0x64000                                           @ Module Data Size - default to 16K (need to make sure this is large enough for module's data needs!)
 	.p2align 2
 	.word       0                                                 @ Reserved 0
 	.p2align 2

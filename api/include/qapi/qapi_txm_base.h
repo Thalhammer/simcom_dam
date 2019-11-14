@@ -73,49 +73,49 @@ extern "C" {
 #define  TXM_QAPI_LOCATION_BASE                   TXM_QAPI_ID_START
 #define  TXM_QAPI_LOCATION_NUM_IDS                50
 
-#define  TXM_QAPI_QCCI_BASE                       TXM_QAPI_LOCATION_BASE + TXM_QAPI_LOCATION_NUM_IDS
+#define  TXM_QAPI_QCCI_BASE                       TXM_QAPI_LOCATION_BASE + TXM_QAPI_LOCATION_NUM_IDS // 50
 #define  TXM_QAPI_QCCI_NUM_IDS                    100
 
-#define  TXM_QAPI_DIAG_BASE                       TXM_QAPI_QCCI_BASE + TXM_QAPI_QCCI_NUM_IDS
+#define  TXM_QAPI_DIAG_BASE                       TXM_QAPI_QCCI_BASE + TXM_QAPI_QCCI_NUM_IDS // 150
 #define  TXM_QAPI_DIAG_NUM_IDS                    100
 
-#define  TXM_QAPI_TIMERS_BASE                     TXM_QAPI_DIAG_BASE + TXM_QAPI_DIAG_NUM_IDS
+#define  TXM_QAPI_TIMERS_BASE                     TXM_QAPI_DIAG_BASE + TXM_QAPI_DIAG_NUM_IDS // 250
 #define  TXM_QAPI_TIMERS_NUM_IDS                  50
 
-#define  TXM_QAPI_FS_BASE                         TXM_QAPI_TIMERS_BASE + TXM_QAPI_TIMERS_NUM_IDS
+#define  TXM_QAPI_FS_BASE                         TXM_QAPI_TIMERS_BASE + TXM_QAPI_TIMERS_NUM_IDS // 300
 #define  TXM_QAPI_FS_NUM_IDS                      100
 
-#define  TXM_QAPI_TLMM_BASE                       TXM_QAPI_FS_BASE + TXM_QAPI_FS_NUM_IDS
+#define  TXM_QAPI_TLMM_BASE                       TXM_QAPI_FS_BASE + TXM_QAPI_FS_NUM_IDS // 400
 #define  TXM_QAPI_TLMM_NUM_IDS                    50
 
-#define  TXM_QAPI_GPIO_INT_BASE                   TXM_QAPI_TLMM_BASE + TXM_QAPI_TLMM_NUM_IDS
+#define  TXM_QAPI_GPIO_INT_BASE                   TXM_QAPI_TLMM_BASE + TXM_QAPI_TLMM_NUM_IDS // 450
 #define  TXM_QAPI_GPIO_INT_NUM_IDS                50
 
-#define  TXM_QAPI_ADC_BASE                        TXM_QAPI_GPIO_INT_BASE + TXM_QAPI_GPIO_INT_NUM_IDS
+#define  TXM_QAPI_ADC_BASE                        TXM_QAPI_GPIO_INT_BASE + TXM_QAPI_GPIO_INT_NUM_IDS // 500
 #define  TXM_QAPI_ADC_NUM_IDS                     50
 
-#define  TXM_QAPI_TSENS_BASE                      TXM_QAPI_ADC_BASE + TXM_QAPI_ADC_NUM_IDS
+#define  TXM_QAPI_TSENS_BASE                      TXM_QAPI_ADC_BASE + TXM_QAPI_ADC_NUM_IDS // 550
 #define  TXM_QAPI_TSENS_NUM_IDS                   50
 
-#define  TXM_QAPI_DATA_SERVICES_BASE              TXM_QAPI_TSENS_BASE + TXM_QAPI_TSENS_NUM_IDS
+#define  TXM_QAPI_DATA_SERVICES_BASE              TXM_QAPI_TSENS_BASE + TXM_QAPI_TSENS_NUM_IDS // 600
 #define  TXM_QAPI_DATA_SERVICES_NUM_IDS           300
 
-#define  TXM_QAPI_BUSES_BASE                      TXM_QAPI_DATA_SERVICES_BASE + TXM_QAPI_DATA_SERVICES_NUM_IDS
+#define  TXM_QAPI_BUSES_BASE                      TXM_QAPI_DATA_SERVICES_BASE + TXM_QAPI_DATA_SERVICES_NUM_IDS // 900
 #define  TXM_QAPI_BUSES_NUM_IDS                   100
 
-#define  TXM_QAPI_FTL_BASE                        TXM_QAPI_BUSES_BASE + TXM_QAPI_BUSES_NUM_IDS
+#define  TXM_QAPI_FTL_BASE                        TXM_QAPI_BUSES_BASE + TXM_QAPI_BUSES_NUM_IDS // 1000
 #define  TXM_QAPI_FTL_NUM_IDS                     25
 
-#define  TXM_QAPI_USB_BASE                        TXM_QAPI_FTL_BASE + TXM_QAPI_FTL_NUM_IDS
+#define  TXM_QAPI_USB_BASE                        TXM_QAPI_FTL_BASE + TXM_QAPI_FTL_NUM_IDS // 1025
 #define  TXM_QAPI_USB_NUM_IDS                     25
 
-#define  TXM_QAPI_RIL_BASE                        TXM_QAPI_USB_BASE + TXM_QAPI_USB_NUM_IDS
+#define  TXM_QAPI_RIL_BASE                        TXM_QAPI_USB_BASE + TXM_QAPI_USB_NUM_IDS // 1050
 #define  TXM_QAPI_RIL_NUM_IDS                     50
 
-#define  TXM_QAPI_PMIC_BASE                       TXM_QAPI_RIL_BASE + TXM_QAPI_RIL_NUM_IDS
+#define  TXM_QAPI_PMIC_BASE                       TXM_QAPI_RIL_BASE + TXM_QAPI_RIL_NUM_IDS // 1100
 #define  TXM_QAPI_PMIC_NUM_IDS                    25
 
-#define  TXM_QURT_TIMETICK_BASE                   TXM_QAPI_PMIC_BASE + TXM_QAPI_PMIC_NUM_IDS
+#define  TXM_QURT_TIMETICK_BASE                   TXM_QAPI_PMIC_BASE + TXM_QAPI_PMIC_NUM_IDS // 1125
 #define  TXM_QURT_TIMETICK_NUM_IDS                10
 
 #define  TXM_QAPI_DAM_BASE                        TXM_QC_OEM_API_BASE

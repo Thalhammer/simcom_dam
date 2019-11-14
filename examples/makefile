@@ -2,7 +2,7 @@ PROJS=$(shell find . -regextype sed -regex ".*/[0-9][0-9]-[^/]*$$" -type d)
 
 .PHONY: all clean dist-clean common $(PROJS) clean-common $(addprefix clean-, $(PROJS))
 
-TYPE ?= arm
+TYPE ?= gcc
 
 all: $(PROJS)
 clean: $(addprefix clean-, $(PROJS))

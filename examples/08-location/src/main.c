@@ -8,6 +8,7 @@
 #include "util/debug.h"
 #include "util/trace.h"
 #include "util/boot_cfg.h"
+#include "util/time.h"
 
 #include "tx_api.h"
 
@@ -70,6 +71,8 @@ static void loc_tracking_cb(qapi_Location_t loc)
 		((loc.flags & QAPI_LOCATION_HAS_BEARING_ACCURACY_BIT)?"y":"n")
 	);
 	TRACE("timestamp: %d\r\n", (int)(loc.timestamp/1000));
+	time_gregorian_type time = time_convert_unix_to_gregorian(loc.timestamp / 1000);
+	TRACE("time: %u.%u.%u %u:%u:%u UTC\r\n", time.day, time.month, time.year, time.hour, time.minute, time.second);
 	if(loc.flags & QAPI_LOCATION_HAS_LAT_LONG_BIT) {
 		TRACE("position:         %f %f\r\n", loc.latitude, loc.longitude);
 	}

@@ -74,8 +74,11 @@ qapi_Status_t qapi_Timer_Sleep(uint64_t timeout, qapi_TIMER_unit_type unit, qboo
 		return QAPI_ERR_NOT_SUPPORTED;
 	case QAPI_TIMER_UNIT_MSEC:
 		if(timeout < 10) return QAPI_ERR_NOT_SUPPORTED;
+		__attribute__((fallthrough));
 	case QAPI_TIMER_UNIT_SEC:
+		__attribute__((fallthrough));
 	case QAPI_TIMER_UNIT_MIN:
+		__attribute__((fallthrough));
 	case QAPI_TIMER_UNIT_HOUR:
 		return _sleep_timer(timeout, unit);
 	default:

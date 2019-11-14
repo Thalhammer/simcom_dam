@@ -14,6 +14,7 @@
 #define TRACE_TAG "main"
 
 void timer_cb(uint32_t data) {
+	(void)data;
 	qapi_PM_Rtc_Julian_Type_t time;
 	memset(&time, 0, sizeof(time));
 	int res = qapi_PM_Rtc_Read_Cmd(&time);

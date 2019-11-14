@@ -18,6 +18,7 @@ TX_EVENT_FLAGS_GROUP flags;
 int i = 0;
 
 void timer_cb(uint32_t data) {
+	(void)data;
 	i++;
 	tx_event_flags_set(&flags, 0x01, TX_OR);
 }

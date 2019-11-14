@@ -17,10 +17,13 @@ void* memset(void* ptr, int value, size_t num) {
 	switch(num%4) {
 		case 3:
 			((uint8_t*)ptr)[num - 3] = mask;
+			__attribute__((fallthrough));
 		case 2:
 			((uint8_t*)ptr)[num - 2] = mask;
+			__attribute__((fallthrough));
 		case 1:
 			((uint8_t*)ptr)[num - 1] = mask;
+			__attribute__((fallthrough));
 		case 0:
 			break;
 	}
@@ -35,10 +38,13 @@ void* memcpy(void* destination, const void* source, size_t num) {
 	switch(num%4) {
 		case 3:
 			((uint8_t*)destination)[num - 3] = ((uint8_t*)source)[num - 3];
+			__attribute__((fallthrough));
 		case 2:
 			((uint8_t*)destination)[num - 2] = ((uint8_t*)source)[num - 2];
+			__attribute__((fallthrough));
 		case 1:
 			((uint8_t*)destination)[num - 1] = ((uint8_t*)source)[num - 1];
+			__attribute__((fallthrough));
 		case 0:
 			break;
 	}
@@ -53,10 +59,13 @@ int memcmp(const void* destination, const void* source, size_t num) {
 	switch(num%4) {
 		case 3:
 			if(((uint8_t*)destination)[num - 3] != ((uint8_t*)source)[num - 3]) return (((uint8_t*)destination)[num - 3] - ((uint8_t*)source)[num - 3]);
+			__attribute__((fallthrough));
 		case 2:
 			if(((uint8_t*)destination)[num - 2] != ((uint8_t*)source)[num - 2]) return (((uint8_t*)destination)[num - 2] - ((uint8_t*)source)[num - 2]);
+			__attribute__((fallthrough));
 		case 1:
 			if(((uint8_t*)destination)[num - 1] != ((uint8_t*)source)[num - 1]) return (((uint8_t*)destination)[num - 1] - ((uint8_t*)source)[num - 1]);
+			__attribute__((fallthrough));
 		case 0:
 			break;
 	}

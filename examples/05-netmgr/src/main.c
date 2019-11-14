@@ -16,6 +16,7 @@
 #include "../../config.h"
 
 void constate_changed(netmgr_constate_t s) {
+	TRACE("constate=%d\r\n", s);
 	if(s == NETMGR_connected) {
 		TRACE("connected to the internet\r\n");
 	}
@@ -27,7 +28,7 @@ int dam_app_start(void)
 	if(debug_init() != 0) return TX_SUCCESS;
 
 	TRACE("waiting some time\r\n");
-	tx_thread_sleep(500);
+	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
 	TRACE("starting network\r\n");
 	if(netmgr_init() != 0) {
 		TRACE("failed to init network manager\r\n");

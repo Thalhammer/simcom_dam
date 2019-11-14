@@ -10,16 +10,18 @@
 #include "qapi_timer.h"
 
 struct uart_context_s {
-	int send_buf_len;
+	uint32_t send_buf_len;
 	qapi_UART_Handle_t handle;
-	TX_SEMAPHORE mtx;
+	TX_SEMAPHORE* mtx;
 	int is_off;
 	char* sendbuf;
 };
 
 static void tx_cb(uint32_t num_bytes, void *cb_data) {
+	(void)num_bytes;
 	uart_context_t ctx = (uart_context_t)cb_data;
-	tx_semaphore_put(&ctx->mtx);
+	if(ctx == NULL) return;
+	tx_semaphore_put(ctx->mtx);
 }
 
 qapi_Status_t uart_required_buf(int* bufsize, int sendbuf) {
@@ -76,8 +78,16 @@ qapi_Status_t uart_init(uart_context_t* ctx, const uart_init_config_t* cfg) {
 	int res = qapi_UART_Open(&mctx->handle, cfg->port, &open_properties);
 	if(res != QAPI_OK) return res;
 
-	res = tx_semaphore_create(&mctx->mtx, "uart_send_mtx", 1);
+	res = txm_module_object_allocate((void**)&mctx->mtx, sizeof(TX_SEMAPHORE));
 	if(res != TX_SUCCESS) {
+		qapi_UART_Transmit(mctx->handle, "Failed to allocate mutex\n", 26, NULL);
+		qapi_UART_Close(&mctx->handle);
+		return res;
+	}
+	res = tx_semaphore_create(mctx->mtx, "uart_send_mtx", 1);
+	if(res != TX_SUCCESS) {
+		qapi_UART_Transmit(mctx->handle, "Failed to create mutex\n", 24, NULL);
+		txm_module_object_deallocate(mctx->mtx);
 		qapi_UART_Close(&mctx->handle);
 		return res;
 	}
@@ -108,7 +118,7 @@ qapi_Status_t uart_write(uart_context_t ctx, const char* str, size_t len) {
 		}
 	} else {
 		// Lock semaphore
-		tx_semaphore_get(&ctx->mtx, TX_WAIT_FOREVER);
+		tx_semaphore_get(ctx->mtx, TX_WAIT_FOREVER);
 		// Copy data to send buffer
 		memset(ctx->sendbuf, 0, ctx->send_buf_len);
 		memcpy(ctx->sendbuf, (char*)str, len);
@@ -147,8 +157,8 @@ qapi_Status_t uart_printf(uart_context_t ctx, const char* fmt, ...) {
 }
 
 qapi_Status_t uart_power_off(uart_context_t ctx) {
-	tx_semaphore_get(&ctx->mtx, TX_WAIT_FOREVER);
-	tx_semaphore_put(&ctx->mtx);
+	tx_semaphore_get(ctx->mtx, TX_WAIT_FOREVER);
+	tx_semaphore_put(ctx->mtx);
 	ctx->is_off = 1;
 	return qapi_UART_Power_Off(ctx->handle);
 }
