@@ -1,1 +1,1 @@
-include ../examples/lib.mk
+include ../build_scripts/lib.mk

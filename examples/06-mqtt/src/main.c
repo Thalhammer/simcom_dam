@@ -18,7 +18,7 @@
 #include "stdio.h"
 #include "txm_module.h"
 
-#include "../../config.h"
+#include "config.h"
 
 #define TRACE_TAG "main"
 

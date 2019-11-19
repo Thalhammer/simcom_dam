@@ -19,7 +19,7 @@ FLAGS += -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_
 FLAGS += -O2 -Wall -Wextra -Werror -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfloat-abi=soft -ffunction-sections
 CFLAGS +=
 CXXFLAGS += --std=c++11 -fno-exceptions -fno-rtti -fno-unwind-tables
-INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi -I $(DAM_INC_BASE)/stdlib
+INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi -I $(DAM_INC_BASE)/stdlib -I $(SELF_DIR)
 
 include $(SELF_DIR)config.mk
 -include config.mk
@@ -68,10 +68,10 @@ $(OUTNAME).bin: $(OUTNAME).elf
 	@echo Generating $@
 	@$(OBJCOPY) -O binary --only-section=ER_RO --only-section=ER_RW $^ $@
 
-$(OUTNAME).elf: $(OBJ) ../linker.lds
+$(OUTNAME).elf: $(OBJ) $(SELF_DIR)/linker.lds
 	@mkdir -p $(OUTPUT_PATH)
 	@echo Linking $@
-	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T ../linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map --start-group $(OBJ) $(SELF_DIR)/../api/bin/lib.a $(GCC_TOOLCHAIN)/../lib/gcc/arm-none-eabi/7.3.1/libgcc.a --end-group -gc-sections -z defs --print-memory-usage
+	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T $(SELF_DIR)/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map --start-group $(OBJ) $(SELF_DIR)/../api/bin/lib.a $(GCC_TOOLCHAIN)/../lib/gcc/arm-none-eabi/7.3.1/libgcc.a --end-group -gc-sections -z defs --print-memory-usage
 
 %.c.o: %.c
 	@echo Building $<

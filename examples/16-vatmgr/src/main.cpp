@@ -11,6 +11,7 @@
 #include "util/vatmgr.h"
 
 #include "tx_api.h"
+#include "txpp/byte_pool.h"
 
 #define TRACE_TAG "main"
 
@@ -31,20 +32,14 @@ static const urc_handler_entry_t vat_entries[2] = {
 	{ NULL, &default_handler },
 };
 
-int dam_app_start(void)
+extern "C" int dam_app_start(void)
 {
-	if(boot_cfg() != 0) return TX_SUCCESS;
-	if(debug_init() != QAPI_OK) return TX_SUCCESS;
-	TRACE("waiting some time\r\n");
-	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
-	TRACE("init\r\n");
-
 	vat_init();
-	vat_register_urc(vat_entries, sizeof(vat_entries)/sizeof(urc_handler_entry_t));
+	vat_register_urcs(vat_entries, sizeof(vat_entries)/sizeof(urc_handler_entry_t));
 
 	TRACE("exec\r\n");
-	//int res = vat_execute("AT+CPSI?\r\n");
-	int res = vat_execute("AT+CCLK?\r\n");
+	int res = vat_execute("AT+CPSI?\r\n");
+	res = vat_execute("AT+CCLK?\r\n");
 	TRACE("res=%d\r\n", res);
 
 	TRACE("done\r\n");

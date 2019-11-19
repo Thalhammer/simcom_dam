@@ -1,1 +1,1 @@
-include ../default.mk
+include ../../build_scripts/default.mk

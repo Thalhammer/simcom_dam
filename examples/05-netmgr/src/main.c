@@ -13,7 +13,7 @@
 
 #define TRACE_TAG "main"
 
-#include "../../config.h"
+#include "config.h"
 
 void constate_changed(netmgr_constate_t s, void* a) {
 	(void)a;
