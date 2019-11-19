@@ -12,11 +12,11 @@ int dam_app_start(void)
 {
 	const char* msg = "Hello from DAM :) \r\n";
 
-	uart_init();
+	app_uart_init();
 	tx_thread_sleep(100);
 
 	for(int i = 0; i<1000; i++) {
-		uart_write_str(msg);
+		app_uart_write_str(msg);
 	}
 	tx_thread_sleep(100);
 

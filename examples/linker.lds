@@ -37,11 +37,12 @@ SECTIONS {
   * (.gnu.linkonce.r.*)
   * (.gcc_except_table)
 
+  /*
   * (.ARM.extab* .gnu.linkonce.armextab.*)
   __exidx_start = .;
 	* (.ARM.exidx* .gnu.linkonce.armexidx.*)
   __exidx_end = .;
-
+  */
 	* (.rodata .rodata* .constdata* .conststring*)
   . = ALIGN(16);
   } > ram : LR_1

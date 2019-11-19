@@ -101,12 +101,6 @@ static void loc_tracking_cb(qapi_Location_t loc)
 
 int dam_app_start(void)
 {
-	if(boot_cfg() != 0) return TX_SUCCESS;
-	if(debug_init() != QAPI_OK) return TX_SUCCESS;
-	TRACE("waiting some time\r\n");
-	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
-	TRACE("init\r\n");
-
 	qapi_Location_Callbacks_t cbs;
 	memset(&cbs, 0, sizeof(cbs));
 	cbs.size = sizeof(cbs);
@@ -118,7 +112,7 @@ int dam_app_start(void)
 	qapi_Location_Options_t opts;
 	memset(&opts, 0, sizeof(opts));
 	opts.size = sizeof(opts);
-	opts.minInterval = 0;
+	opts.minInterval = 10;
 	opts.minDistance = 0;
 
 	qapi_loc_client_id clientid;
@@ -134,6 +128,5 @@ int dam_app_start(void)
 		return TX_SUCCESS;
 	} else TRACE("tracking started\r\n");
 
-	TRACE("done\r\n");
-	return TX_SUCCESS;
+	while(1) tx_thread_sleep(10);
 }

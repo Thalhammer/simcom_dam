@@ -1,10 +1,11 @@
 #include "util/debug.h"
 #include "util/uart.h"
 
-static uart_context_t _debug_ctx;
+static uart_context_t _debug_ctx = NULL;
 static uint8_t _debug_uart[256];
 
 int debug_init(void) {
+	if(_debug_ctx != NULL) return 0;
 	uart_init_config_t cfg;
 	int res = uart_debug_cfg(&cfg);
 	if(res != 0) return res;

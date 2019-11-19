@@ -1,24 +1,35 @@
 #include "util/netmgr.h"
 #include "util/debug.h"
 #include "util/trace.h"
+
+extern "C" {
 #include "qapi/qapi.h"
 #include "qapi/qapi_socket.h"
 #include "qapi/qapi_dss.h"
 #include "qapi/qapi_dnsc.h"
 #include "qapi/qapi_ns_utils.h"
 #include "qapi/qapi_timer.h"
+}
+
+#include "txpp/byte_pool.h"
 
 #define TRACE_TAG "netmgr"
 
+typedef struct {
+	netmgr_constate_cb_t callback;
+	void* argument;
+} callback_t;
+
+#define MAX_CONSTATE_CBS 64
+
 static netmgr_constate_t _netmgr_constate;
 static qapi_DSS_Hndl_t _netmgr_dss_handle;
-static const char* _netmgr_apn;
-static const char* _netmgr_user;
-static const char* _netmgr_pass;
-static netmgr_constate_cb_t _netmgr_constate_cb;
+static char* _netmgr_apn;
+static char* _netmgr_user;
+static char* _netmgr_pass;
 static qapi_TIMER_handle_t _netmgr_reconnect_timer;
-static TX_BYTE_POOL* _netmgr_pool;
-static UCHAR _netmgr_pool_storage[2048];
+static callback_t _netmgr_constate_cbs[MAX_CONSTATE_CBS];
+static txpp::static_byte_pool<2048> _netmgr_pool;
 
 static void _netmgr_dss_cb(
 	qapi_DSS_Hndl_t hndl, /* Handle for which this event is associated */
@@ -52,11 +63,7 @@ static void _netmgr_dss_cb(
 		{
 			TRACE("number of ip addresses: %d\r\n", len);
 
-			qapi_DSS_Addr_Info_t* info_ptr;
-			if(tx_byte_allocate(_netmgr_pool, &info_ptr, sizeof(qapi_DSS_Addr_Info_t) * len, TX_NO_WAIT) != TX_SUCCESS)
-				info_ptr = NULL;
-			
-			memset(info_ptr, 0, sizeof(qapi_DSS_Addr_Info_t) * len);
+			qapi_DSS_Addr_Info_t* info_ptr = (qapi_DSS_Addr_Info_t*)_netmgr_pool.calloc(len, sizeof(qapi_DSS_Addr_t));
 
 			if (info_ptr != NULL && qapi_DSS_Get_IP_Addr(_netmgr_dss_handle,info_ptr,len) == QAPI_OK)
 			{
@@ -84,7 +91,7 @@ static void _netmgr_dss_cb(
 						TRACE("[%d] failed to parse addresses\r\n",i );
 					}
 				}
-				tx_byte_release(info_ptr);
+				_netmgr_pool.free(info_ptr);
 			} else {
 				TRACE("failed to allocate memory for ip addresses\r\n");
 			}
@@ -96,8 +103,10 @@ static void _netmgr_dss_cb(
 			qapi_Net_DNSc_Add_Server("8.8.4.4", QAPI_NET_DNS_ANY_SERVER_ID);
 		}
 
-		if(_netmgr_constate_cb!=NULL)
-			_netmgr_constate_cb(_netmgr_constate);
+		for(size_t i=0; i<MAX_CONSTATE_CBS; i++) {
+			if(_netmgr_constate_cbs[i].callback != NULL)
+				_netmgr_constate_cbs[i].callback(_netmgr_constate, _netmgr_constate_cbs[i].argument);
+		}
 	} else if(evt == QAPI_DSS_EVT_NET_NO_NET_E) {
 		if (_netmgr_constate == NETMGR_disconnected)
 			return;
@@ -108,8 +117,10 @@ static void _netmgr_dss_cb(
 			qapi_DSS_Rel_Data_Srvc_Hndl(_netmgr_dss_handle);
 		_netmgr_dss_handle = NULL;
 
-		if(_netmgr_constate_cb!=NULL)
-			_netmgr_constate_cb(_netmgr_constate);
+		for(size_t i=0; i<MAX_CONSTATE_CBS; i++) {
+			if(_netmgr_constate_cbs[i].callback != NULL)
+				_netmgr_constate_cbs[i].callback(_netmgr_constate, _netmgr_constate_cbs[i].argument);
+		}
 	} else if(evt == QAPI_DSS_EVT_NET_RECONFIGURED_E) {
 		TRACE("network call reconfigured\r\n");
 	} else if(evt == QAPI_DSS_EVT_NET_NEWADDR_E) {
@@ -129,29 +140,41 @@ static void _netmgr_reconnect_cb() {
 	}
 }
 
-int netmgr_init(void) {
+extern "C" int netmgr_init(void) {
 	TRACE("netmgr is initialising\r\n");
 	_netmgr_constate = NETMGR_initiated;
 	_netmgr_dss_handle = NULL;
 	_netmgr_apn = NULL;
 	_netmgr_user = NULL;
 	_netmgr_pass = NULL;
-	_netmgr_constate_cb = NULL;
+	memset(_netmgr_constate_cbs, 0, sizeof(_netmgr_constate_cbs));
 	_netmgr_reconnect_timer = NULL;
-	// TODO: Typesafe txm_module_object_allocate
-	if(txm_module_object_allocate((void**)&_netmgr_pool, sizeof(TX_BYTE_POOL)) != TX_SUCCESS) return QAPI_ERR_NO_MEMORY;
-	if(tx_byte_pool_create(&_netmgr_pool, "netmgr_pool", _netmgr_pool_storage, 2048) != TX_SUCCESS) {
-		txm_module_object_deallocate(_netmgr_pool);
-		return QAPI_ERR_NO_MEMORY;
-	}
 	return QAPI_OK;
 }
 
-void netmgr_set_constate_cb(netmgr_constate_cb_t cb) {
-	_netmgr_constate_cb = cb;
+extern "C" int netmgr_add_constate_cb(netmgr_constate_cb_t cb, void* arg) {
+	for(size_t i=0; i<MAX_CONSTATE_CBS; i++) {
+		if(_netmgr_constate_cbs[i].callback == NULL && _netmgr_constate_cbs[i].argument == NULL) {
+			_netmgr_constate_cbs[i].callback = cb;
+			_netmgr_constate_cbs[i].argument = arg;
+			return 1;
+		}
+	}
+	return 0;
 }
 
-int netmgr_connect(const char* APN, const char* user, const char* pw) {
+extern "C" int netmgr_remove_constate_cb(netmgr_constate_cb_t cb, void* arg) {
+	for(size_t i=0; i<MAX_CONSTATE_CBS; i++) {
+		if(_netmgr_constate_cbs[i].callback == cb && _netmgr_constate_cbs[i].argument == arg) {
+			_netmgr_constate_cbs[i].callback = NULL;
+			_netmgr_constate_cbs[i].argument = NULL;
+			return 1;
+		}
+	}
+	return 0;
+}
+
+extern "C" int netmgr_connect(const char* APN, const char* user, const char* pw) {
 	char* buf_apn = NULL;
 	char* buf_user = NULL;
 	char* buf_pw = NULL;
@@ -162,30 +185,36 @@ int netmgr_connect(const char* APN, const char* user, const char* pw) {
 
 	// Duplicate arguments
 	if(len_apn != 0) {
-		if(tx_byte_allocate(_netmgr_pool, &buf_apn, len_apn + 1, TX_NO_WAIT) != TX_SUCCESS || buf_apn == NULL) {
+		buf_apn = (char*)_netmgr_pool.malloc(len_apn + 1);
+		if(buf_apn == NULL) {
 			TRACE("failed to alloc memory for apn\r\n");
 			return QAPI_ERR_NO_MEMORY;
-		} else memcpy(buf_apn, APN, len_apn + 1);
+		}
+		memcpy(buf_apn, APN, len_apn + 1);
 	}
 	if(len_user != 0) {
-		if(tx_byte_allocate(_netmgr_pool, &buf_user, len_user + 1, TX_NO_WAIT) != TX_SUCCESS || buf_user == NULL) {
+		buf_user = (char*)_netmgr_pool.malloc(len_user + 1);
+		if(buf_user == NULL) {
 			TRACE("failed to alloc memory for user\r\n");
-			if(buf_apn) tx_byte_release(buf_apn);
+			_netmgr_pool.free(buf_apn);
 			return QAPI_ERR_NO_MEMORY;
-		} else memcpy(buf_user, user, len_user + 1);
+		}
+		memcpy(buf_user, user, len_user + 1);
 	}
 	if(len_pw != 0) {
-		if(tx_byte_allocate(_netmgr_pool, &buf_pw, len_pw + 1, TX_NO_WAIT) != TX_SUCCESS || buf_pw == NULL) {
+		buf_pw = (char*)_netmgr_pool.malloc(len_pw + 1);
+		if(buf_pw == NULL) {
 			TRACE("failed to alloc memory for pw\r\n");
-			if(buf_apn) tx_byte_release(buf_apn);
-			if(buf_user) tx_byte_release(buf_user);
+			_netmgr_pool.free(buf_apn);
+			_netmgr_pool.free(buf_user);
 			return QAPI_ERR_NO_MEMORY;
-		} else memcpy(buf_pw, pw, len_pw + 1);
+		}
+		memcpy(buf_pw, pw, len_pw + 1);
 	}
 	// Release old params
-	if(_netmgr_apn) tx_byte_release(_netmgr_apn);
-	if(_netmgr_user) tx_byte_release(_netmgr_user);
-	if(_netmgr_pass) tx_byte_release(_netmgr_pass);
+	_netmgr_pool.free(_netmgr_apn);
+	_netmgr_pool.free(_netmgr_user);
+	_netmgr_pool.free(_netmgr_pass);
 	_netmgr_apn = buf_apn;
 	_netmgr_user = buf_user;
 	_netmgr_pass = buf_pw;
@@ -197,7 +226,7 @@ int netmgr_connect(const char* APN, const char* user, const char* pw) {
 	return res;
 }
 
-int netmgr_reconnect(void) {
+extern "C" int netmgr_reconnect(void) {
 	int result = 0;
 	qapi_DSS_Call_Param_Value_t param_info;
 
@@ -248,7 +277,7 @@ int netmgr_reconnect(void) {
 	return result;
 }
 
-void netmgr_dump_status(void) {
+extern "C" void netmgr_dump_status(void) {
 	int res;
 	qapi_DSS_Data_Pkt_Stats_t stats;
 	memset(&stats, 0, sizeof(stats));
@@ -261,16 +290,16 @@ void netmgr_dump_status(void) {
 	}
 }
 
-int netmgr_is_connected(void) {
+extern "C" netmgr_constate_t netmgr_get_state(void) {
 	return _netmgr_constate;
 }
 
-void netmgr_set_autoreconnect(int s) {
+extern "C" void netmgr_set_autoreconnect(int s) {
 	if(_netmgr_reconnect_timer == NULL && s == 1) {
 		qapi_TIMER_define_attr_t timer_def_attr;
 		memset(&timer_def_attr, 0, sizeof(timer_def_attr));
 		timer_def_attr.cb_type = QAPI_TIMER_FUNC1_CB_TYPE;
-		timer_def_attr.sigs_func_ptr = _netmgr_reconnect_cb;
+		timer_def_attr.sigs_func_ptr = (void*)_netmgr_reconnect_cb;
 		int res = qapi_Timer_Def( &_netmgr_reconnect_timer, &timer_def_attr);
 		if(res != 0) {
 			TRACE("failed to define reconnect timer: %d\r\n", res);

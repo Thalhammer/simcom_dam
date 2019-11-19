@@ -1,4 +1,8 @@
 #pragma once
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stddef.h>
 #include "qapi_status.h"
 #include <stdarg.h>
@@ -61,3 +65,8 @@ extern qapi_Status_t uart_printf(uart_context_t ctx, const char* fmt, ...);
 
 extern qapi_Status_t uart_power_off(uart_context_t ctx);
 extern qapi_Status_t uart_power_on(uart_context_t ctx);
+
+
+#ifdef __cplusplus
+}
+#endif

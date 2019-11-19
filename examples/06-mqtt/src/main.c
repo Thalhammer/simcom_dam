@@ -45,12 +45,13 @@ static void mqtt_msgcb(qapi_Net_MQTT_Hndl_t mqtt, int32_t reason, const uint8_t*
 
 static void mqtt_concb(qapi_Net_MQTT_Hndl_t mqtt, int32_t reason) {
 	(void)reason;
-	TRACE("connected to mqtt\r\n");
+	TRACE("connected to mqtt, reason=%d\r\n", reason);
 	int res = qapi_Net_MQTT_Subscribe(mqtt, "test/echo", 1);
 	if(res != QAPI_OK) TRACE("failed to subscribe to topic\r\n");
 }
 
-static void constate_changed(netmgr_constate_t s) {
+static void constate_changed(netmgr_constate_t s, void* a) {
+	(void)a;
 	if(s == NETMGR_connected) {
 		TRACE("connected to the internet\r\n");
 		qapi_Net_MQTT_Config_t config;
@@ -70,7 +71,7 @@ static void constate_changed(netmgr_constate_t s) {
 				config.nonblocking_connect = true;
 				memcpy(config.client_id, MQTT_CLIENTID, sizeof(MQTT_CLIENTID) - 1);
 				config.client_id_len = 5;
-				config.keepalive_duration = 30;
+				config.keepalive_duration = 300;
 				config.clean_session = 1;
 				config.username = MQTT_USER;
 				config.username_len = strlen((const char*)config.username);
@@ -89,18 +90,13 @@ static void constate_changed(netmgr_constate_t s) {
 
 int dam_app_start(void)
 {
-	if(boot_cfg() != 0) return TX_SUCCESS;
-	if(debug_init() != 0) return TX_SUCCESS;
-	TRACE("waiting some time\r\n");
-	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
-
 	TRACE("starting network\r\n");
 	if(netmgr_init() != 0) {
 		TRACE("failed to init network manager\r\n");
 		return TX_SUCCESS;
 	}
 	netmgr_set_autoreconnect(true);
-	netmgr_set_constate_cb(constate_changed);
+	netmgr_add_constate_cb(constate_changed, NULL);
 	TRACE("connecting to network\r\n");
 	if(netmgr_connect(APN, USER, PASS) != 0) {
 		TRACE("failed to start connecting to network\r\n");
@@ -119,5 +115,8 @@ int dam_app_start(void)
 
 	TRACE("init done\r\n");
 
-	return TX_SUCCESS;
+	// Global destructors run on return,
+	// so we must make sure main does not return until
+	// all background processes and threads are done.
+	while(true) { tx_thread_sleep(10000); }
 }

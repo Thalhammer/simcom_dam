@@ -41,8 +41,10 @@ void psm_cb(psm_status_msg_type* msg) {
 	TRACE("psm_cb client=%d reason=%s(%d) status=%s(%d)\r\n", msg->client_id, reason_map[msg->reason], msg->reason, status_map[msg->status], msg->status);
 	if(msg->status == PSM_STATUS_HEALTH_CHECK)
 		qapi_PSM_Client_Hc_Ack(msg->client_id);
-	if(msg->status == PSM_STATUS_REJECT && msg->reason == PSM_REJECT_REASON_NOT_ENABLED)
+	if(msg->status == PSM_STATUS_REJECT && msg->reason == PSM_REJECT_REASON_NOT_ENABLED) {
 		TRACE("PSM is not enabled, please enable it using AT or VisualAT in the APP\r\n");
+		TRACE("Execute \"AT+CSCLK=1\" and \"AT+CPSMS=1\" to enable power safe mode.\r\n");
+	}
 	if(msg->status == PSM_STATUS_READY) {
 		TRACE("ready state signaled, entering PSM any moment\r\n");
 	}
@@ -50,12 +52,6 @@ void psm_cb(psm_status_msg_type* msg) {
 
 int dam_app_start(void)
 {
-	if(boot_cfg() != 0) return TX_SUCCESS;
-	if(debug_init() != QAPI_OK) return TX_SUCCESS;
-	TRACE("waiting some time\r\n");
-	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
-	TRACE("init\r\n");
-
 	// It seems like RTC needs to be initialized or the module will enter PSM but never return.
 	int res = qapi_PM_Rtc_Init();
 	if(res != QAPI_OK) {
@@ -81,7 +77,7 @@ int dam_app_start(void)
 	memset(&info, 0, sizeof(info));
 	// You might specify PSM_WAKEUP_MEASUREMENT_ONLY if you don't want to do network access on next wakeup.
 	// If you do so, the modem might not get loaded which should save startuptime and power.
-	info.psm_wakeup_type = PSM_WAKEUP_MEASUREMENT_NW_ACCESS;
+	info.psm_wakeup_type = PSM_WAKEUP_MEASUREMENT_ONLY;
 	info.psm_time_info.time_format_flag = PSM_TIME_IN_SECS; // Time is specified in seconds
 	// Time to sleep for in seconds (Minimum 550 seconds, 9:10 minutes)
 	// however this time might not be accurate

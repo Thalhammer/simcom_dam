@@ -2,6 +2,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stdint.h"
+#include "util/time.h"
 
 #define VCB_PUTCHAR(x) do { \
 	if(error == 0) buf[done++] = (x); \
@@ -49,7 +50,7 @@ int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, c
 				}
 				case 'f': {
 					double num = va_arg(args, double);
-					char ibuf[16 + 1 + 6];
+					char ibuf[16 + 1 + 10];
 					memset(ibuf, 0, sizeof(ibuf));
 					itoa((int)num, ibuf, 10);
 
@@ -57,7 +58,7 @@ int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, c
 					num = num - (int)num;
 					ibuf[16] = '.';
 
-					for(uint32_t i=0; i<5; i++) {
+					for(uint32_t i=0; i<9 && (num != 0 || i == 0); i++) {
 						int c = num*10;
 						num = num*10 - c;
 						ibuf[i + 17] = '0' + c;
@@ -94,11 +95,24 @@ int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, c
 					break;
 				}
 				case 's': {
+					int opt_plus = 0;
+					if(*format == '+') {
+						opt_plus = 1;
+						format++;
+					}
 					char* str = va_arg(args, char*);
 					if(str == NULL) break;
+					
 
 					while(*str != '\0')
 					{
+						if((*str == '\r' || *str == '\n') && opt_plus) {
+							VCB_PUTCHAR('\\');
+							if(*str == '\r') VCB_PUTCHAR('r');
+							else VCB_PUTCHAR('n');
+							str++;
+							continue;
+						}
 						VCB_PUTCHAR(*str++);
 					}
 					break;
@@ -108,9 +122,46 @@ int vcbprintf(char* buf, size_t n, int(*cb)(char*,size_t, void*), void* param, c
 					VCB_PUTCHAR(ch);
 					break;
 				}
+				case 't': {
+					time_gregorian_type greg;
+					if(*format == 'g') {
+						time_gregorian_type* arg = va_arg(args, time_gregorian_type*);
+						greg = *arg;
+					} else if(*format == 'u') {
+						time_unix_type* arg = va_arg(args, time_unix_type*);
+						greg = time_convert_unix_to_gregorian(*arg);
+					} else if(*format == 'j') {
+						time_julian_type* arg = va_arg(args, time_julian_type*);
+						greg = time_convert_julian_to_gregorian(*arg);
+					} else break;
+					
+					format++;
+
+					VCB_PUTCHAR('0' + (greg.day / 10));
+					VCB_PUTCHAR('0' + (greg.day % 10));
+					VCB_PUTCHAR('.');
+					VCB_PUTCHAR('0' + (greg.month / 10));
+					VCB_PUTCHAR('0' + (greg.month % 10));
+					VCB_PUTCHAR('.');
+					VCB_PUTCHAR('0' + (greg.year / 1000));
+					VCB_PUTCHAR('0' + ((greg.year / 100) % 10));
+					VCB_PUTCHAR('0' + ((greg.year / 10) % 10));
+					VCB_PUTCHAR('0' + (greg.year % 10));
+					VCB_PUTCHAR(' ');
+					VCB_PUTCHAR('0' + (greg.hour / 10));
+					VCB_PUTCHAR('0' + (greg.hour % 10));
+					VCB_PUTCHAR(':');
+					VCB_PUTCHAR('0' + (greg.minute / 10));
+					VCB_PUTCHAR('0' + (greg.minute % 10));
+					VCB_PUTCHAR(':');
+					VCB_PUTCHAR('0' + (greg.second / 10));
+					VCB_PUTCHAR('0' + (greg.second % 10));
+					break;
+				}
 				case '%': {
 					VCB_PUTCHAR('%');
 				}
+				
 				default:
 					break;
 			}

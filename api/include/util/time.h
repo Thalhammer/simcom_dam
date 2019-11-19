@@ -1,4 +1,9 @@
 #pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "qapi/qapi_timer.h"
 
 typedef __UINT32_TYPE__ time_t;
@@ -16,3 +21,7 @@ time_t time_convert_julian_to_unix(time_julian_type time);
 time_t time_convert_gregorian_to_unix(time_gregorian_type time);
 time_gregorian_type time_convert_julian_to_gregorian(time_julian_type time);
 time_gregorian_type time_convert_unix_to_gregorian(time_t ts);
+
+#ifdef __cplusplus
+}
+#endif

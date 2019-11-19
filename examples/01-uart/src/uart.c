@@ -21,7 +21,7 @@ static void tx_cb(uint32_t num_bytes, void *cb_data) {
 	tx_semaphore_put(uart_mtx);
 }
 
-void uart_init(void) {
+void app_uart_init(void) {
 	qapi_UART_Open_Config_t open_properties;
 	memset (&open_properties, 0, sizeof(open_properties));
 	open_properties.parity_Mode = QAPI_UART_NO_PARITY_E;
@@ -30,22 +30,22 @@ void uart_init(void) {
 	open_properties.bits_Per_Char= QAPI_UART_8_BITS_PER_CHAR_E;
 	open_properties.tx_CB_ISR = tx_cb;
 	qapi_UART_Open(&uart_handle, QAPI_UART_PORT_003_E, &open_properties);
-	if(txm_module_object_allocate(&uart_mtx, sizeof(TX_SEMAPHORE)) != TX_SUCCESS) return;
+	if(txm_module_object_allocate((void**)&uart_mtx, sizeof(TX_SEMAPHORE)) != TX_SUCCESS) return;
 	if(tx_semaphore_create(uart_mtx, "uart_send_mtx", 1) != TX_SUCCESS) return;
 }
 
-void uart_write_str(const char* str) {
-	uart_write(str, strlen(str));
+void app_uart_write_str(const char* str) {
+	app_uart_write(str, strlen(str));
 }
 
-void uart_write(const char* str, size_t len) {
+void app_uart_write(const char* str, size_t len) {
 	if(len > UART_SENDBUF_SIZE) {
 		while(true) {
 			if(len <= UART_SENDBUF_SIZE) {
-				uart_write(str, len);
+				app_uart_write(str, len);
 				break;
 			} else {
-				uart_write(str, UART_SENDBUF_SIZE);
+				app_uart_write(str, UART_SENDBUF_SIZE);
 				str += UART_SENDBUF_SIZE;
 				len -= UART_SENDBUF_SIZE;
 			}

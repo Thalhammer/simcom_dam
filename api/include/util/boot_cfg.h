@@ -14,4 +14,10 @@ int dam_app_start(void)
 	return TX_SUCCESS;
 }
 */
+#ifdef __cplusplus
+extern "C" {
+#endif
 extern int boot_cfg(void);
+#ifdef __cplusplus
+}
+#endif

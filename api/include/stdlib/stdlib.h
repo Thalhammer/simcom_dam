@@ -1,6 +1,9 @@
 #pragma once
 #include "stddef.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 typedef struct {
 	int quot;
 	int rem;
@@ -25,3 +28,6 @@ typedef struct {
 } malloc_stats_t;
 extern int malloc_init(void* baseptr, size_t len);
 extern int malloc_stats(malloc_stats_t* stats);
+#ifdef __cplusplus
+}
+#endif

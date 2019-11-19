@@ -3,7 +3,6 @@
 #include "qapi/qapi.h"
 #include "qapi/qapi_status.h"
 #include "qapi/qapi_tlmm.h"
-#include "qapi/qapi_timer.h"
 
 #ifndef BOOT_CFG_PIN
 #define BOOT_CFG_PIN 11

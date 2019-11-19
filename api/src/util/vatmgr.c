@@ -28,10 +28,10 @@ typedef struct {
 	void* result_fn_data;
 } exec_ctx_t;
 
-static volatile const urc_handler_entry_t* _vatmgr_urc_handlers[URC_MAX_HANDLERS];
+static urc_handler_entry_t _vatmgr_urc_handlers[URC_MAX_HANDLERS];
 static char _vatmgr_line_buf[2049];
 static unsigned int _vatmgr_line_idx;
-static volatile const urc_handler_entry_t* _vatmgr_temp_urc;
+static const urc_handler_entry_t* volatile _vatmgr_temp_urc;
 static volatile int _vatmgr_temp_urc_remaining_lines;
 
 static volatile exec_ctx_t* _vatmgr_exec_ctx;
@@ -78,29 +78,28 @@ static void vat_handle_response(const char* resp) {
 static void vat_handle_urc(const char* urc, const char* value) {
 	COND_TRACE("urc: %s, %s\r\n", urc, value);
 	for(int i=0; i<URC_MAX_HANDLERS; i++) {
-		if(_vatmgr_urc_handlers[i] != NULL) {
-			if(_vatmgr_urc_handlers[i]->urc != NULL && strcmp(_vatmgr_urc_handlers[i]->urc, urc) == 0) {
-				int res = _vatmgr_urc_handlers[i]->cb(urc, value);
-				if(res != 0) {
-					_vatmgr_temp_urc = _vatmgr_urc_handlers[i];
-					_vatmgr_temp_urc_remaining_lines = res;
-				}
-				COND_TRACE("urcend_exact: %s, %s\r\n", urc, value);
-				return;
+		if(_vatmgr_urc_handlers[i].cb != NULL
+		&& _vatmgr_urc_handlers[i].urc != NULL
+		&& strcmp(_vatmgr_urc_handlers[i].urc, urc) == 0) {
+			int res = _vatmgr_urc_handlers[i].cb(urc, value);
+			if(res != 0) {
+				_vatmgr_temp_urc = &_vatmgr_urc_handlers[i];
+				_vatmgr_temp_urc_remaining_lines = res;
 			}
+			COND_TRACE("urcend_exact: %s, %s\r\n", urc, value);
+			return;
 		}
 	}
 	for(int i=0; i<URC_MAX_HANDLERS; i++) {
 		//COND_TRACE("hndl[%d]=%x\r\n",i, _vatmgr_urc_handlers[i]);
-		if(_vatmgr_urc_handlers[i] != NULL) {
-			if(_vatmgr_urc_handlers[i]->urc == NULL) {
-				int res = _vatmgr_urc_handlers[i]->cb(urc, value);
-				if(res != 0) {
-					_vatmgr_temp_urc = _vatmgr_urc_handlers[i];
-					_vatmgr_temp_urc_remaining_lines = res;
-				}
-				return;
+		if(_vatmgr_urc_handlers[i].cb != NULL
+		&& _vatmgr_urc_handlers[i].urc == NULL) {
+			int res = _vatmgr_urc_handlers[i].cb(urc, value);
+			if(res != 0) {
+				_vatmgr_temp_urc = &_vatmgr_urc_handlers[i];
+				_vatmgr_temp_urc_remaining_lines = res;
 			}
+			return;
 		}
 	}
 	COND_TRACE("urcend_default: %s, %s\r\n", urc, value);
@@ -141,7 +140,7 @@ static void vat_dtr(void) {
 		memset(read_buffer, 0, sizeof(read_buffer));
 		res = qapi_DAM_Visual_AT_Output(read_buffer, sizeof(read_buffer)-1);
 		if(res != 0) {
-			COND_TRACE("received %d bytes: %s\r\n", (int)res, read_buffer);
+			COND_TRACE("received %d bytes: %+s\r\n", (int)res, read_buffer);
 			for(int i=0; i<res; i++) {
 				_vatmgr_line_buf[_vatmgr_line_idx++] = read_buffer[i];
 				if(_vatmgr_line_idx >= sizeof(_vatmgr_line_buf) - 1) {
@@ -169,7 +168,7 @@ int vat_init(void) {
 	_vatmgr_line_idx = 0;
 	_vatmgr_exec_ctx = NULL;
 
-	memset(_vatmgr_urc_handlers, 0, sizeof(_vatmgr_urc_handlers));
+	memset((void*)_vatmgr_urc_handlers, 0, sizeof(_vatmgr_urc_handlers));
 	_vatmgr_temp_urc = NULL;
 	_vatmgr_temp_urc_remaining_lines = 0;
 
@@ -186,7 +185,7 @@ int vat_init(void) {
 }
 
 void vat_write(const char* msg) {
-	COND_TRACE("write: %s\r\n", msg);
+	COND_TRACE("write: %+s\r\n", msg);
 	int res = qapi_DAM_Visual_AT_Input(msg, strlen(msg));
 	if(res != 0) COND_TRACE("failed to write AT command\r\n");
 }
@@ -209,27 +208,31 @@ int vat_execute_cb(const char* msg, char* res, int reslen, int(*result_fn)(const
 	ctx.result_fn_data = data;
 
 	unsigned int act;
-	tx_event_flags_get(&_vatmgr_exec_done, (1<<0), TX_AND_CLEAR, &act, TX_NO_WAIT);
+	tx_event_flags_get(_vatmgr_exec_done, (1<<0), TX_AND_CLEAR, &act, TX_NO_WAIT);
 
 	_vatmgr_exec_ctx = &ctx;
 	vat_write(msg);
-	tx_event_flags_get(&_vatmgr_exec_done, (1<<0), TX_AND_CLEAR, &act, TX_WAIT_FOREVER);
+	tx_event_flags_get(_vatmgr_exec_done, (1<<0), TX_AND_CLEAR, &act, TX_WAIT_FOREVER);
 	_vatmgr_temp_urc = NULL;
 
 	COND_TRACE("execute finished: res=%d, echo=%d\r\n", ctx.result_code, ctx.echo_received);
 	return ctx.result_code;
 }
 
-int vat_register_urc(const urc_handler_entry_t* entries, int nentries) {
-	int done = 0;
-	for(int i=0; i<URC_MAX_HANDLERS && done < nentries; i++) {
-		if(_vatmgr_urc_handlers[i] == NULL) {
-			//COND_TRACE("done=%d e[name] = %s    e[cb] = %p\r\n", done, entries[done].urc ? entries[done].urc : "<NULL>", entries[done].cb);
-			if(entries[done].cb != NULL) {
-				_vatmgr_urc_handlers[i] = &entries[done];
-			} else COND_TRACE("callback function null, ignoring\r\n");
-			done++;
+int vat_register_urcs(const urc_handler_entry_t* entries, int nentries) {
+	for(int i=0; i < nentries; i++) {
+		if(!vat_register_urc(entries[i].urc, entries[i].cb)) return -1;
+	}
+	return 0;
+}
+
+int vat_register_urc(const char* urc, int(*cb)(const char*, const char*)) {
+	for(int i=0; i<URC_MAX_HANDLERS; i++) {
+		if(_vatmgr_urc_handlers[i].cb == NULL) {
+			_vatmgr_urc_handlers[i].cb = cb;
+			_vatmgr_urc_handlers[i].urc = urc;
+			return 1;
 		}
 	}
-	return nentries == done ? 0 : -1;
+	return 0;
 }
