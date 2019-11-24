@@ -5,21 +5,24 @@ typedef struct {
     const char* channelName;
     qapi_Adc_Input_Properties_Type_t properties;
 } analog_channel_info_t;
-static analog_channel_info_t _analog_channels[9];
-static qapi_ADC_Handle_t _analog_handle = NULL;
+
+static struct {
+    analog_channel_info_t channels[9];
+    qapi_ADC_Handle_t handle;
+} _analog_state = {{}, NULL};
 
 int analog_init(void) {
-    if(_analog_handle == NULL) {
-        qapi_Status_t status = qapi_ADC_Open(&_analog_handle, 0);
+    if(_analog_state.handle == NULL) {
+        qapi_Status_t status = qapi_ADC_Open(&_analog_state.handle, 0);
         if(status != QAPI_OK) return status;
-        memset(_analog_channels, 0, sizeof(_analog_channels));
-        for(size_t i=0; i<(sizeof(_analog_channels)/sizeof(analog_channel_info_t)); i++) {
-            _analog_channels[i].channelName = analog_get_channel_name(i);
-            status = qapi_ADC_Get_Input_Properties(_analog_handle,
-                            _analog_channels[i].channelName, strlen(_analog_channels[i].channelName),
-                            &_analog_channels[i].properties);
+        memset(_analog_state.channels, 0, sizeof(_analog_state.channels));
+        for(size_t i=0; i<(sizeof(_analog_state.channels)/sizeof(analog_channel_info_t)); i++) {
+            _analog_state.channels[i].channelName = analog_get_channel_name(i);
+            status = qapi_ADC_Get_Input_Properties(_analog_state.handle,
+                            _analog_state.channels[i].channelName, strlen(_analog_state.channels[i].channelName),
+                            &_analog_state.channels[i].properties);
             if(status != QAPI_OK) {
-                qapi_ADC_Close(_analog_handle, false);
+                qapi_ADC_Close(_analog_state.handle, false);
                 return status;
             }
         }
@@ -28,13 +31,13 @@ int analog_init(void) {
 }
 
 int analog_read_channel(analog_channel_t channel, int* value) {
-    if(channel > ANALOG_EXTERNAL) return QAPI_ERR_INVALID_PARAM;
+    if(channel > (sizeof(_analog_state.channels)/sizeof(analog_channel_info_t)) - 1) return QAPI_ERR_INVALID_PARAM;
     if(value == NULL) return QAPI_ERR_INVALID_PARAM;
     int res = analog_init();
     if(res != QAPI_OK) return res;
     
     qapi_ADC_Read_Result_t result;
-    res = qapi_ADC_Read_Channel(_analog_handle, &_analog_channels[channel].properties, &result);
+    res = qapi_ADC_Read_Channel(_analog_state.handle, &_analog_state.channels[channel].properties, &result);
     if(res != QAPI_OK) return res;
     *value = result.nPhysical;
     return QAPI_OK;
@@ -56,9 +59,9 @@ const char* analog_get_channel_name(analog_channel_t channel) {
 }
 
 int analog_deinit(void) {
-    if(_analog_handle != NULL) {
-        qapi_ADC_Close(_analog_handle, false);
-        _analog_handle = NULL;
+    if(_analog_state.handle != NULL) {
+        qapi_ADC_Close(_analog_state.handle, false);
+        _analog_state.handle = NULL;
     }
     return QAPI_OK;
 }
