@@ -6,7 +6,12 @@
 #include "qapi_timer.h"
 #include "qapi_uart.h"
 
+#include "util/init_config.h"
+
 #include "tx_api.h"
+
+INIT_DISABLE_DEBUG_UART();
+INIT_DISABLE_SAFETY_DELAY();
 
 char send_buf[256];
 

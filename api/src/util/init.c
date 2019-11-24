@@ -17,6 +17,9 @@ extern void (*__init_array_end []) (void);
 extern void (*__fini_array_start []) (void);
 extern void (*__fini_array_end []) (void);
 
+int __attribute__((weak)) _init_debug_uart = 1;
+int __attribute__((weak)) _init_safety_delay = 1;
+
 static int call_preinit() {
 	TRACE("calling preinit array\r\n");
 	size_t count = __preinit_array_end - __preinit_array_start;
@@ -51,10 +54,14 @@ extern void __cxa_finalize(void*);
 
 int _libc_app_init(void) {
 	if(boot_cfg() != TX_SUCCESS) return TX_SUCCESS;
-	if(debug_init() != TX_SUCCESS) return TX_SUCCESS;
-	TRACE("waiting some time\r\n");
-	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
-	TRACE("init\r\n");
+	if(_init_debug_uart) {
+		if(debug_init() != TX_SUCCESS) return TX_SUCCESS;
+	}
+	if(_init_safety_delay) {
+		TRACE("waiting some time\r\n");
+		qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
+		TRACE("init\r\n");
+	}
 
 	int res = call_preinit();
 	if(res != TX_SUCCESS) return res;

@@ -10,11 +10,9 @@
 #include "qapi/qapi_ns_utils.h"
 #include "qapi/qapi_dnsc.h"
 #include "qapi/qapi_mqtt.h"
-#include "util/debug.h"
 #include "util/trace.h"
 #include "util/netmgr.h"
 #include "util/htons.h"
-#include "util/boot_cfg.h"
 #include "stdio.h"
 #include "txm_module.h"
 

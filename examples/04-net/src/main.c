@@ -10,6 +10,7 @@
 #include "qapi/qapi_timer.h"
 #include "util/uart.h"
 #include "util/boot_cfg.h"
+#include "util/init_config.h"
 
 #include "tx_api.h"
 
@@ -162,6 +163,9 @@ static void reconnect_cb(uint32_t udata) {
 		net_connect();
 	}
 }
+
+INIT_DISABLE_DEBUG_UART();
+INIT_DISABLE_SAFETY_DELAY();
 
 int dam_app_start(void)
 {

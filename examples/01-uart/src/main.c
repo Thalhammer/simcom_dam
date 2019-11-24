@@ -3,10 +3,14 @@
 #include "qapi/qapi_types.h"
 #include "qapi/qapi.h"
 #include "qapi/qapi_status.h"
+#include "util/init_config.h"
 #include "qapi_timer.h"
 #include "uart.h"
 
 #include "tx_api.h"
+
+INIT_DISABLE_DEBUG_UART();
+INIT_DISABLE_SAFETY_DELAY();
 
 int dam_app_start(void)
 {

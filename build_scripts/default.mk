@@ -68,7 +68,7 @@ $(OUTNAME).bin: $(OUTNAME).elf
 	@echo Generating $@
 	@$(OBJCOPY) -O binary --only-section=ER_RO --only-section=ER_RW $^ $@
 
-$(OUTNAME).elf: $(OBJ) $(SELF_DIR)/linker.lds
+$(OUTNAME).elf: $(OBJ) $(SELF_DIR)/linker.lds $(SELF_DIR)/../api/bin/lib.a
 	@mkdir -p $(OUTPUT_PATH)
 	@echo Linking $@
 	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T $(SELF_DIR)/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map --start-group $(OBJ) $(SELF_DIR)/../api/bin/lib.a $(GCC_TOOLCHAIN)/../lib/gcc/arm-none-eabi/7.3.1/libgcc.a --end-group -gc-sections -z defs --print-memory-usage
@@ -92,5 +92,8 @@ $(OUTNAME).elf: $(OBJ) $(SELF_DIR)/linker.lds
 %.pp.S: %.S
 	@echo Building $<
 	@$(CC) -E $(FLAGS) $(CFLAGS) $(INC_PATHS) $< > $@
+
+$(SELF_DIR)/../api/bin/lib.a:
+	@+make -C $(SELF_DIR)/../api/
 
 -include $(OBJ:%=$(DEP_DIR)/%.d)
