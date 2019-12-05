@@ -15,7 +15,7 @@ void _txm_module_callback_request_thread_entry(ULONG id) {
 
 	do {
 		// Receive notify
-		ret = tx_queue_receive(req_queue, &notify, TX_NO_WAIT);
+		ret = tx_queue_receive(req_queue, &notify, TX_WAIT_FOREVER);
 		if(ret != TX_SUCCESS) break;
 		switch(notify.txm_module_callback_notify_type) {
 			case 0:
@@ -32,6 +32,6 @@ void _txm_module_callback_request_thread_entry(ULONG id) {
 				break;
 		}
 		// Send back unmodified notify. Maybe for acknowledge ?
-		ret = tx_queue_send(resp_queue, &notify, TX_NO_WAIT);
+		ret = tx_queue_send(resp_queue, &notify, TX_WAIT_FOREVER);
 	} while(ret == TX_SUCCESS);
 }
