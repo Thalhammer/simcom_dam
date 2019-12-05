@@ -4,6 +4,14 @@ ULONG (*_txm_module_kernel_call_dispatcher)(ULONG type, ULONG param_1, ULONG par
 TXM_MODULE_INSTANCE *_txm_module_entry_info;
 TXM_MODULE_THREAD_ENTRY_INFO *_txm_module_instance_ptr;
 
+// This function get called upon each thread start and should initialize stuff for it
+// We could implement tls destruction here but I am not sure yet how to do that without
+// dynamic memory management.
+// Each TX_THREAD object has a tls field which is an array of 16 void pointers.
+// We can use tx_thread_indentify() to get the current threads structure, however I don't see
+// a way to get the total size of all emutls variables before they are accessed, so allocating it on the stack
+// wont work. libgcc gets around this by allocating memory using malloc but this does not feel right on an embedded
+// device. Also note that cp15 is not preserved by threadx, so you NEED to use emutls.
 VOID  _txm_module_thread_shell_entry(TX_THREAD *thread_ptr, TXM_MODULE_THREAD_ENTRY_INFO *thread_info) {
 	if(thread_info->txm_module_thread_entry_info_start_thread) {
 		_txm_module_entry_info = thread_info->txm_module_thread_entry_info_module;
