@@ -63,7 +63,7 @@ namespace txpp {
         {
             if(ptr == NULL || len == 0) return false;
             if(m_pool != nullptr) return false;
-            if(txm_module_object_allocate(&m_pool) != TX_SUCCESS) return false;
+            if(txm_module_object_allocate(&m_pool, sizeof(TX_BYTE_POOL)) != TX_SUCCESS) return false;
             if(tx_byte_pool_create(m_pool, name, ptr, len) != TX_SUCCESS) {
                 txm_module_object_deallocate(m_pool);
                 m_pool = nullptr;
@@ -102,6 +102,8 @@ namespace txpp {
             info.total_bytes = m_length;
             return true;
         }
+
+        TX_BYTE_POOL* raw_pool() noexcept { return m_pool; }
     };
 
     template<size_t NumBytes>
@@ -122,5 +124,6 @@ namespace txpp {
         void* malloc(size_t len, unsigned long timeout = TX_NO_WAIT) noexcept { return byte_pool::malloc(len, timeout); }
         void* calloc(size_t num, size_t size, unsigned long timeout = TX_NO_WAIT) noexcept { return byte_pool::calloc(num, size, timeout); }
         bool get_info(pool_info& info) const noexcept { return byte_pool::get_info(info); }
+        TX_BYTE_POOL* raw_pool() noexcept { return byte_pool::raw_pool(); }
     };
 }

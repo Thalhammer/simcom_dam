@@ -1,6 +1,5 @@
 #include "util/vatmgr.h"
 #include "qapi/qapi_dam.h"
-#include "util/debug.h"
 #include "util/trace.h"
 #include <stddef.h>
 

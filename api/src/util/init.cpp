@@ -1,10 +1,12 @@
+extern "C" {
 #include <stdint.h>
 #include "txm_module.h"
 
 #include "qapi/qapi_timer.h"
-#include "util/debug.h"
 #include "util/trace.h"
 #include "util/boot_cfg.h"
+
+#include "assert.h"
 
 #define TRACE_TAG "init"
 
@@ -25,7 +27,16 @@ static int call_preinit() {
 	size_t count = __preinit_array_end - __preinit_array_start;
 	for(size_t i = 0; i < count; i++) {
 		TRACE("calling %x\r\n", __preinit_array_start[i]);
+#if __cpp_exceptions >= 199711
+		try {
+#endif
 		__preinit_array_start[i]();
+#if __cpp_exceptions >= 199711
+		} catch(...) {
+			TRACE("exception handling preinit function %x\r\n", __preinit_array_start[i]);
+			return -1;
+		}
+#endif
 	}
 	return TX_SUCCESS;
 }
@@ -35,7 +46,16 @@ static int call_init() {
 	size_t count = __init_array_end - __init_array_start;
 	for(size_t i = 0; i < count; i++) {
 		TRACE("calling %x\r\n", __init_array_start[i]);
+#if __cpp_exceptions >= 199711
+		try {
+#endif
 		__init_array_start[i]();
+#if __cpp_exceptions >= 199711
+		} catch(...) {
+			TRACE("exception handling init function %x\r\n", __init_array_start[i]);
+			return -1;
+		}
+#endif
 	}
 	return TX_SUCCESS;
 }
@@ -45,12 +65,22 @@ static int call_fini() {
 	size_t count = __fini_array_end - __fini_array_start;
 	for(size_t i = 0; i < count; i++) {
 		TRACE("calling %x\r\n", __fini_array_start[i]);
+#if __cpp_exceptions >= 199711
+		try {
+#endif
 		__fini_array_start[i]();
+#if __cpp_exceptions >= 199711
+		} catch(...) {
+			TRACE("exception handling fini function %x\r\n", __fini_array_start[i]);
+			return -1;
+		}
+#endif
 	}
 	return TX_SUCCESS;
 }
 
 extern void __cxa_finalize(void*);
+extern int __cxa_guard_init_system(void);
 
 int _libc_app_init(void) {
 	if(boot_cfg() != TX_SUCCESS) return TX_SUCCESS;
@@ -63,12 +93,28 @@ int _libc_app_init(void) {
 		TRACE("init\r\n");
 	}
 
-	int res = call_preinit();
+	int res = __cxa_guard_init_system();
+	if(res != TX_SUCCESS) {
+		TRACE("failed to init cpp guard mutex: %d\r\n", res);
+		return TX_SUCCESS;
+	}
+
+	res = call_preinit();
 	if(res != TX_SUCCESS) return res;
 	res = call_init();
 	if(res != TX_SUCCESS) return res;
 
-	int app_result = dam_app_start();
+	int app_result;
+#if __cpp_exceptions >= 199711
+	try {
+#endif
+	app_result = dam_app_start();
+#if __cpp_exceptions >= 199711
+	} catch(...) {
+		TRACE("exception in main\r\n");
+		return TX_SUCCESS;
+	}
+#endif
 
 	__cxa_finalize(NULL);
 
@@ -78,4 +124,6 @@ int _libc_app_init(void) {
 	TRACE("exiting to os with code %d\r\n", app_result);
 
 	return app_result;
+}
+
 }

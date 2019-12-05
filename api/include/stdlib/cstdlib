@@ -1,0 +1,10 @@
+#pragma once
+#include "stdlib.h"
+
+#ifdef __cplusplus
+namespace std {
+    inline void abort() {
+        ::abort();
+    }
+}
+#endif

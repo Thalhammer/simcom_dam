@@ -9,13 +9,9 @@ DAM_INC_BASE=$(SELF_DIR)../api/include
 
 OUTNAME=$(OUTPUT_PATH)/lib.a
 
-CC=$(GCC_TOOLCHAIN)/arm-none-eabi-gcc
-CXX=$(GCC_TOOLCHAIN)/arm-none-eabi-g++
-LINK=$(GCC_TOOLCHAIN)/arm-none-eabi-ld
-AR=$(GCC_TOOLCHAIN)/arm-none-eabi-ar
-
 FLAGS += -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_TRACE -DTX_DISABLE_NOTIFY_CALLBACKS -DTX_DAM_QC_CUSTOMIZATIONS -DTARGET_THREADX -D__SIMCOM_DAM__
-FLAGS += -O2 -Wall -Wextra -Werror -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfloat-abi=soft -ffunction-sections
+FLAGS += -O2 -Wall -Wextra -Werror -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfloat-abi=soft -ffunction-sections -fdata-sections -fno-omit-frame-pointer
+FLAGS += -mtp=cp15
 CFLAGS +=
 CXXFLAGS += --std=c++11 -fno-exceptions -fno-rtti -fno-unwind-tables
 INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi -I $(DAM_INC_BASE)/stdlib

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus__
+extern "C" {
+#endif
+
 #ifdef __INT8_TYPE__
 typedef __INT8_TYPE__ int8_t;
 #endif
@@ -111,3 +115,7 @@ typedef __UINTMAX_TYPE__ uintmax_t;
 
 #define WINT_MAX __WINT_MAX__
 #define WINT_MIN __WINT_MIN__
+
+#ifdef __cplusplus__
+}
+#endif

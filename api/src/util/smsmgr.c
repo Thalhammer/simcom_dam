@@ -1,5 +1,4 @@
 #include "util/smsmgr.h"
-#include "util/debug.h"
 #include "util/trace.h"
 #include "util/vatmgr.h"
 #include "stdio.h"

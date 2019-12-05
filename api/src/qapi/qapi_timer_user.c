@@ -110,15 +110,15 @@ qapi_Status_t qapi_Timer_Undef(qapi_TIMER_handle_t timer_handle) {
 
 qapi_Status_t qapi_Timer_Def(qapi_TIMER_handle_t* timer_handle, qapi_TIMER_define_attr_t* timer_attr) {
 	if(timer_handle == NULL) return QAPI_ERR_INVALID_PARAM;
-	int handle_size; // this value was cached in the original however this caused problems with gcc so we get it everytime.
-	_txm_module_system_call12(TXM_QAPI_TIMER_GET_TIMER_TYPE_SIZE, (ULONG)&handle_size, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-	if(handle_size == 0) return QAPI_ERR_TIMEOUT;
+	static int handle_size = 0;
+	if(handle_size == 0) {
+		_txm_module_system_call12(TXM_QAPI_TIMER_GET_TIMER_TYPE_SIZE, (ULONG)&handle_size, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+		if(handle_size == 0) return QAPI_ERR_TIMEOUT;
+	}
 	if(txm_module_object_allocate(timer_handle, handle_size) != 0 || *timer_handle == NULL) return QAPI_ERR_NO_MEMORY;
 	qapi_Status_t res = _txm_module_system_call12(TXM_QAPI_TIMER_DEF, (ULONG)timer_handle, (ULONG)timer_attr, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	if(res != QAPI_OK) {
-		// Is this correct ?
-		// Seems to be...
-		txm_module_object_deallocate(timer_handle);
+		txm_module_object_deallocate(*timer_handle);
 	}
 	return res;
 }

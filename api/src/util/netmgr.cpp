@@ -1,5 +1,4 @@
 #include "util/netmgr.h"
-#include "util/debug.h"
 #include "util/trace.h"
 
 extern "C" {

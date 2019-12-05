@@ -827,11 +827,9 @@ ULONG  _txm_module_system_call12(ULONG request, ULONG param_1, ULONG param_2, UL
 
 #define txm_module_thread_system_suspend(t)                             ((UINT) (_txm_module_kernel_call_dispatcher)(TXM_THREAD_SYSTEM_SUSPEND_CALL, (ULONG) t, (ULONG) 0, (ULONG) 0))
 #define txm_module_object_pointer_get(o,n,p)                            ((UINT) (_txm_module_kernel_call_dispatcher)(TXM_MODULE_OBJECT_POINTER_GET_CALL, (ULONG) o, (ULONG) n, (ULONG) p))
-//#define txm_module_object_allocate(o,s)                                 ((UINT) (_txm_module_kernel_call_dispatcher)(TXM_MODULE_OBJECT_ALLOCATE_CALL, (ULONG) o, (ULONG) s, (ULONG) 0))
+#define txm_module_object_allocate(o,s)                                 ((UINT) (_txm_module_kernel_call_dispatcher)(TXM_MODULE_OBJECT_ALLOCATE_CALL, (ULONG) o, (ULONG) s, (ULONG) 0))
 #define txm_module_object_deallocate(o)                                 ((UINT) (_txm_module_kernel_call_dispatcher)(TXM_MODULE_OBJECT_DEALLOCATE_CALL, (ULONG) o, (ULONG) 0, (ULONG) 0))
 #define txm_module_application_request(i,a,b,c)                         ((UINT) (_txm_module_kernel_call_dispatcher)((ULONG) TXM_APPLICATION_REQUEST_ID_BASE+i, (ULONG) a, (ULONG) b, (ULONG) c))
-
-inline UINT txm_module_object_allocate(void** o,ULONG s) { return ((UINT)(_txm_module_kernel_call_dispatcher)(TXM_MODULE_OBJECT_ALLOCATE_CALL, (ULONG) o, (ULONG) s, (ULONG) 0)); }
 
 #define nx_arp_dynamic_entries_invalidate(i)                            ((UINT) (_txm_module_kernel_call_dispatcher)(TXM_ARP_DYNAMIC_ENTRIES_INVALIDATE_CALL, (ULONG) i, (ULONG) 0, (ULONG) 0))
 #define nx_arp_dynamic_entry_set(i,a,m,l)                               ((UINT) _txm_module_system_call4(TXM_ARP_DYNAMIC_ENTRY_SET_CALL, (ULONG) i, (ULONG) a, (ULONG) m, (ULONG) l))
@@ -1073,7 +1071,7 @@ TXM_MODULE_MANAGER_ADDITIONAL_PROTOTYPES
 /* Determine if a C++ compiler is being used.  If so, complete the standard
    C conditional started above.  */
 #ifdef __cplusplus
-        }
+}
 #endif
 
 #endif

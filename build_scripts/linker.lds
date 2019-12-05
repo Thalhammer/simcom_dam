@@ -8,59 +8,64 @@ MEMORY {
 
 SECTIONS {
   ER_RO 0x42000000 : {
-	Image$$ER_RO$$Base = .;
-	*txm_module_preamble.gcc.S.o (Init)
-	*txm_module_preamble.gcc.S.o (.text .text.*)
-	*txm_module_preamble.gcc.S.o (.rodata .rodata.*)
+    Image$$ER_RO$$Base = .;
+    *txm_module_preamble.gcc.S.o (Init)
+    *txm_module_preamble.gcc.S.o (.text .text.*)
+    *txm_module_preamble.gcc.S.o (.rodata .rodata.*)
 
-  __preinit_array_start = .;
-  KEEP(*(SORT(.preinit_array.*)));
-  KEEP(*(.preinit_init_array*));
-  __preinit_array_end = .;
+    __preinit_array_start = .;
+    KEEP(*(SORT(.preinit_array.*)));
+    KEEP(*(.preinit_init_array*));
+    __preinit_array_end = .;
 
-	__init_array_start = .;
-  KEEP( *(SORT(.init_array.*)) );
-  KEEP( *(.init_array*) );
-	__init_array_end = .;
+    __init_array_start = .;
+    KEEP( *(SORT(.init_array.*)) );
+    KEEP( *(.init_array*) );
+    __init_array_end = .;
 
-  __fini_array_start = .;
-  KEEP( *(SORT(.fini_array.*)) );
-  KEEP( *(.fini_array*) );
-  __fini_array_end = .;
+    __fini_array_start = .;
+    KEEP( *(SORT(.fini_array.*)) );
+    KEEP( *(.fini_array*) );
+    __fini_array_end = .;
 
-	* (.text .text.* i.*)
-  * (.glue_7t)
-  * (.glue_7)
-  * (.ctors)
-  * (.dtors)
-  * (.gnu.linkonce.t.*)
-  * (.gnu.linkonce.r.*)
-  * (.gcc_except_table)
+    * (.text .text.* i.*)
+    * (.glue_7t)
+    * (.glue_7)
+    * (.ctors)
+    * (.dtors)
+    * (.gnu.linkonce.t.*)
+    * (.gnu.linkonce.r.*)
+    * (.gcc_except_table)
 
-  /*
-  * (.ARM.extab* .gnu.linkonce.armextab.*)
-  __exidx_start = .;
-	* (.ARM.exidx* .gnu.linkonce.armexidx.*)
-  __exidx_end = .;
-  */
-	* (.rodata .rodata* .constdata* .conststring*)
-  . = ALIGN(16);
+    * (.rodata .rodata* .constdata* .conststring*)
+    . = ALIGN(16);
   } > ram : LR_1
 
+  .ARM.extab : {
+    * (.ARM.extab* .gnu.linkonce.armextab.*)
+  } > ram : LR_1
+
+  .ARM.exidx : {
+    __exidx_start = .;
+    * (.ARM.exidx* .gnu.linkonce.armexidx.*)
+    __exidx_end = .;
+  } > ram : LR_1
+
+  . = ALIGN(16);
 
   ER_RW ALIGN(16) : {
-	Image$$ER_RO$$Limit = .;
-	Image$$ER_RW$$Base = .;
-	KEEP(* (.data .data.*))
-  . = ALIGN(16);
+    Image$$ER_RO$$Limit = .;
+    Image$$ER_RW$$Base = .;
+    KEEP(* (.data .data.*))
+    . = ALIGN(16);
   } > ram : LR_1
 
   ER_ZI ALIGN(16) : {
-	Image$$ER_RW$$Limit = .;
-	Image$$ER_ZI$$Base = .;
-   *(.bss* .bss.* .common COMMON)
-  . = ALIGN(16);
-	Image$$ER_ZI$$Limit = .;
+    Image$$ER_RW$$Limit = .;
+    Image$$ER_ZI$$Base = .;
+    *(.bss* .bss.* .common COMMON)
+    . = ALIGN(16);
+    Image$$ER_ZI$$Limit = .;
   } > ram : LR_1
 
   Image$$ER_RW$$Length = Image$$ER_RW$$Limit - Image$$ER_RW$$Base;

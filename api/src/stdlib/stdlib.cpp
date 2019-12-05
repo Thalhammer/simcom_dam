@@ -73,4 +73,19 @@ int malloc_stats(malloc_stats_t* stats) {
 	stats->num_current_allocations = info.fragments;
 	return 0;
 }
+
+struct TX_BYTE_POOL_STRUCT* malloc_get_heap_pool_raw() {
+	return _heap_pool.raw_pool();
+}
+
+}
+
+txpp::byte_pool& malloc_get_heap_pool() {
+	return _heap_pool;
+}
+
+extern "C" [[noreturn]] void abort_with_message(const char*);
+
+extern "C" void* __emutls_get_address() {
+	abort_with_message("tls not supported");
 }
