@@ -1,0 +1,319 @@
+#pragma once
+#include "memory.h"
+#include "initializer_list.h"
+
+namespace std {
+    template<typename T, class Alloc = allocator<T>>
+    class forward_list;
+    namespace detail {
+        struct node_base {
+            node_base()
+                : next(nullptr)
+            {}
+            struct node_base* next;
+        };
+        template<typename T>
+        struct node : node_base {
+            T value;
+
+            template <class... Args>
+            node(Args&&... args)
+                : value(std::forward<Args>(args)...)
+            {}
+        };
+
+        template<typename T>
+        class const_forward_list_iterator;
+
+        template<typename T>
+        class forward_list_iterator {
+            struct node_base* m_node;
+
+            template<typename U> friend class std::forward_list;
+            template<typename U> friend class const_forward_list_iterator;
+
+            forward_list_iterator(struct node_base* pn)
+                : m_node(pn)
+            {}
+        public:
+            forward_list_iterator()
+                : m_node(nullptr)
+            {}
+
+            bool operator==(const forward_list_iterator& rhs) const noexcept { return m_node == rhs.m_node; }
+            bool operator!=(const forward_list_iterator& rhs) const noexcept { return m_node != rhs.m_node; }
+
+            T& operator*() const { return static_cast<node<T>*>(m_node)->value; }
+            T* operator->() const { return &(static_cast<node<T>*>(m_node)->value); }
+
+            forward_list_iterator& operator++() {
+                m_node = m_node->next;
+                return *this;
+            }
+        };
+
+        template<typename T>
+        class const_forward_list_iterator {
+            struct node_base* m_node;
+
+            template<typename U> friend class std::forward_list;
+
+            const_forward_list_iterator(struct node_base* pn)
+                : m_node(pn)
+            {}
+        public:
+            const_forward_list_iterator()
+                : m_node(nullptr)
+            {}
+            
+            const_forward_list_iterator(const forward_list_iterator<T>& other)
+                : m_node(other.m_node)
+            {}
+
+            bool operator==(const const_forward_list_iterator& rhs) const noexcept { return m_node == rhs.m_node; }
+            bool operator!=(const const_forward_list_iterator& rhs) const noexcept { return m_node != rhs.m_node; }
+
+            const T& operator*() const { return static_cast<node<T>*>(m_node)->value; }
+            const T* operator->() const { return &(static_cast<node<T>*>(m_node)->value); }
+
+            const_forward_list_iterator& operator++() {
+                m_node = m_node->next;
+                return *this;
+            }
+        };
+    }
+    template<typename T, class Alloc>
+    class forward_list {
+    public:
+        typedef T value_type;
+        typedef Alloc allocator_type;
+        typedef value_type& reference;
+        typedef const value_type& const_reference;
+        typedef value_type* pointer;
+        typedef const value_type* const_pointer;
+        typedef detail::forward_list_iterator<value_type> iterator;
+        typedef detail::const_forward_list_iterator<value_type> const_iterator;
+        //typedef reverse_iterator<interator> reverse_iterator;
+        //typedef reverse_iterator<const_interator> const_reverse_iterator;
+        typedef ptrdiff_t difference_type;
+        typedef size_t size_type;
+    private:
+        struct detail::node_base m_head;
+        allocator_type m_alloc;
+    public:
+        forward_list()
+            : m_head(), m_alloc()
+        {}
+
+        explicit forward_list(const allocator_type& alloc)
+            : m_head(), m_alloc(alloc)
+        {}
+
+        explicit forward_list(size_type n, const allocator_type& alloc = allocator_type())
+            : forward_list(n, value_type{}, alloc)
+        {}
+
+        explicit forward_list(size_type n, const value_type& val, const allocator_type& alloc = allocator_type())
+            : forward_list(alloc)
+        {
+            insert_after(before_begin(), n, val);
+        }
+
+        template<typename InputIterator>
+        forward_list(InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
+            : forward_list(alloc)
+        {
+            insert_after(before_begin(), first, last);
+        }
+
+        forward_list(const forward_list& other)
+            : forward_list()
+        {
+            insert_after(before_begin(), other.cbegin(), other.cend());
+        }
+
+        forward_list(const forward_list& other, const allocator_type& alloc)
+            : m_head(), m_alloc(alloc)
+        {
+            insert_after(before_begin(), other.cbegin(), other.cend());
+        }
+
+        forward_list(forward_list&& other)
+            : m_head(), m_alloc()
+        {
+            m_head.next = other.m_head.next;
+            other.m_head.next = nullptr;
+        }
+
+        forward_list(forward_list&& other, const allocator_type& alloc)
+            : m_head(), m_alloc(alloc)
+        {
+            if(alloc != other.m_alloc) {
+                auto it = before_begin();
+                for(auto& e : other) {
+                    it = insert_after(it, std::move(e));
+                }
+            } else {
+                m_head.next = other.m_head.next;
+                other.m_head.next = nullptr;
+            }
+        }
+
+        forward_list(initializer_list<value_type> il, const allocator_type& alloc = allocator_type())
+            : m_head(), m_alloc(alloc)
+        {
+            insert_after(before_begin(), il);
+        }
+
+        ~forward_list() {
+            clear();
+        }
+
+        bool empty() const noexcept {
+            return m_head.next == nullptr;
+        }
+
+        void clear() noexcept {
+            while(m_head.next) {
+                auto temp = m_head.next->next;
+                delete static_cast<detail::node<T>*>(m_head.next);
+                m_head.next = temp;
+            }
+        }
+
+        template <class... Args>
+        void emplace_front (Args&&... args) {
+            detail::node_base* new_node = new detail::node<T>(std::forward<Args>(args)...);
+            new_node->next = m_head.next;
+            m_head.next = new_node;
+        }
+
+        template <class... Args>
+        iterator emplace_after (const_iterator position, Args&&... args) {
+            detail::node_base* new_node = new detail::node<T>(std::forward<Args>(args)...);
+            auto node = position.m_node;
+            new_node->next = node->next;
+            node->next = new_node;
+            return iterator(new_node);
+        }
+
+        void push_front(const value_type& val) {
+            emplace_front(val);
+        }
+
+        void push_front(value_type&& val) {
+            emplace_front(val);
+        }
+
+        iterator insert_after(const_iterator position, const value_type& val) {
+            return emplace_after(position, val);
+        }
+
+        iterator insert_after(const_iterator position, value_type&& val) {
+            return emplace_after(position, val);
+        }
+
+        iterator insert_after(const_iterator position, size_type n, const value_type& val) {
+            auto res = iterator(position.m_node);
+            for(size_type i = 0; i<n; i++) res = insert_after(res, val);
+            return res;
+        }
+
+        template<typename InputIterator>
+        iterator insert_after(const_iterator position, InputIterator first, InputIterator last) {
+            auto res = iterator(position.m_node);
+            for(; first != last; ++first) res = insert_after(res, *first);
+            return res;
+        }
+
+        iterator insert_after(const_iterator position, initializer_list<value_type> il) {
+            auto res = iterator(position.m_node);
+            for(auto beg = il.begin(); beg != il.end(); beg++) res = insert_after(res, *beg);
+            return res;
+        }
+
+        iterator before_begin() noexcept { return iterator(&m_head); }
+        const_iterator before_begin() const noexcept { return const_iterator(&m_head); }
+        const_iterator cbefore_begin() const noexcept { return const_iterator(&m_head); }
+
+        iterator begin() noexcept { return iterator(m_head.next); }
+        const_iterator begin() const noexcept { return const_iterator(m_head.next); }
+        const_iterator cbegin() const noexcept { return const_iterator(m_head.next); }
+
+        iterator end() noexcept { return iterator(nullptr); }
+        const_iterator end() const noexcept { return const_iterator(nullptr); }
+        const_iterator cend() const noexcept { return const_iterator(nullptr); }
+
+        reference front() noexcept { return *begin(); }
+        const_reference front() const noexcept { return *cbegin(); }
+
+        allocator_type get_allocator() const noexcept { return m_alloc; }
+
+        size_type max_size() const noexcept { return size_type(-1); }
+
+        forward_list& operator=(const forward_list& other) {
+            clear();
+            insert_after(before_begin(), other.cbegin(), other.cend());
+            return *this;
+        }
+
+        forward_list& operator=(forward_list&& other) {
+            clear();
+            m_head.next = other.m_head.next;
+            other.m_head.next = nullptr;
+            return *this;
+        }
+
+        forward_list& operator=(initializer_list<value_type> il) {
+            clear();
+            insert_after(before_begin(), il);
+            return *this;
+        }
+
+        void swap(forward_list& other) {
+            auto temp = other.m_head.next;
+            other.m_head.next = m_head.next;
+            m_head.next = temp;
+        }
+
+        void pop_front() {
+            if(m_head.next) {
+                auto temp = m_head.next->next;
+                delete static_cast<detail::node<T>*>(m_head.next);
+                m_head.next = temp;
+            }
+        }
+
+        void reverse() noexcept {
+            if(m_head.next == nullptr || m_head.next->next == nullptr) return;
+
+            auto todo = m_head.next->next;
+            auto rev = m_head.next;
+            rev->next = nullptr;
+            while(todo) {
+                auto temp = todo;
+                todo = todo->next;
+                temp->next = rev;
+                rev = temp;
+            }
+            m_head.next = rev;
+        }
+
+        //TODO: erase_after
+        //TODO: merge
+        //TODO: remove
+        //TODO: remove_if
+        //TODO: resize
+        //TODO: sort
+        //TODO: splice_after
+        //TODO: unique
+        //TODO: non member functions
+
+        // TODO: handle allocator propagation
+    };
+
+    template <class T, class Alloc>
+    void swap (forward_list<T,Alloc>& x, forward_list<T,Alloc>& y) {
+        x.swap(y);
+    }
+}

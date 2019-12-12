@@ -3,7 +3,7 @@
 
 static struct {
 	uart_context_t ctx;
-	uint8_t uart[256];
+	uint8_t uart[4096];
 } _debug_state = {NULL, {}};
 
 int debug_init(void) {
@@ -12,7 +12,7 @@ int debug_init(void) {
 	int res = uart_debug_cfg(&cfg);
 	if(res != 0) return res;
 	cfg.buf = _debug_state.uart;
-	cfg.buf_len = 256;
+	cfg.buf_len = sizeof(_debug_state.uart);
 	cfg.port = UART_PORT_DEFAULT;
 	res = uart_init(&_debug_state.ctx, &cfg);
 	if(res != 0) return res;

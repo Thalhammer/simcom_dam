@@ -30,9 +30,6 @@ extern "C"
 #endif
 int dam_app_start(void)
 {
-	if(boot_cfg() != 0) return TX_SUCCESS;
-	if(debug_init() != QAPI_OK) return TX_SUCCESS;
-	
 	TRACE("i=%d\r\n", i);
 	TRACE("done\r\n");
 

@@ -1,0 +1,24 @@
+#pragma once
+
+#if !__cplusplus
+#error "This is a C++ header"
+#endif
+
+#include "ctype.h"
+
+namespace std {
+    inline int iscntrl(int c) { return ::iscntrl(c); }
+    inline int isblank(int c) { return ::isblank(c); }
+    inline int isspace(int c) { return ::isspace(c); }
+    inline int isupper(int c) { return ::isupper(c); }
+    inline int islower(int c) { return ::islower(c); }
+    inline int isalpha(int c) { return ::isalpha(c); }
+    inline int isdigit(int c) { return ::isdigit(c); }
+    inline int isxdigit(int c) { return ::isxdigit(c); }
+    inline int isalnum(int c) { return ::isalnum(c); }
+    inline int ispunct(int c) { return ::ispunct(c); }
+    inline int isgraph(int c) { return ::isgraph(c); }
+    inline int isprint(int c) { return ::isprint(c); }
+    inline int tolower(int c) { return ::tolower(c); }
+    inline int toupper(int c) { return ::toupper(c); }
+}

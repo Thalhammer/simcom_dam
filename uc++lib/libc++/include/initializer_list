@@ -1,0 +1,34 @@
+#pragma once
+
+namespace std {
+	template<class T>
+	class initializer_list
+	{
+	public:
+		typedef T value_type;
+		typedef const T& reference;
+		typedef const T& const_reference;
+		typedef size_t size_type;
+		typedef const T* iterator;
+		typedef const T* const_iterator;
+	private:
+		iterator _array;
+		size_type _size;
+		// The compiler can call a private constructor.
+		constexpr initializer_list(const_iterator i, size_type s)
+			: _array(i), _size(s)
+		{ }
+	public:
+		constexpr initializer_list()
+			: _array(nullptr), _size(0)
+		{ }
+		constexpr size_type size() { return _size; }
+		constexpr const_iterator begin() { return _array; }
+		constexpr const_iterator end() { return begin() + size(); }
+	};
+
+	template< class T > 
+	inline constexpr T* begin( initializer_list<T> il ) noexcept { return il.begin(); }
+	template< class T > 
+	inline constexpr T* end( initializer_list<T> il ) noexcept { return il.end(); }
+}

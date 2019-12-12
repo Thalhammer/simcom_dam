@@ -1,0 +1,29 @@
+#pragma once
+
+#if !__cplusplus
+#error "This is a C++ header"
+#endif
+
+#include "stdlib.h"
+
+namespace std {
+    inline char* itoa(int value, char* str, int base) { return ::itoa(value, str, base); }
+    inline char* itoa_unsigned(unsigned int value, char* str, int base) { return ::itoa_unsigned(value, str, base); }
+    inline int abs(int value) { return ::abs(value); }
+    inline long int abs(long int value) { return ::labs(value); }
+    inline long long int abs(long long int value) { return ::llabs(value); }
+    inline long int labs(long int value) { return ::labs(value); }
+    inline long long int llabs(long long int value) { return ::llabs(value); }
+
+    using div_t = ::div_t;
+    using ldiv_t = ::ldiv_t;
+    using lldiv_t = ::lldiv_t;
+    inline div_t div(int numer, int denom) { return ::div(numer, denom); }
+    inline ldiv_t div(long int numer, long int denom) { return ::ldiv(numer, denom); }
+    inline lldiv_t div(long long int numer, long long int denom) { return ::lldiv(numer, denom); }
+    inline ldiv_t ldiv(long int numer, long int denom) { return ::ldiv(numer, denom); }
+    inline lldiv_t lldiv(long long int numer, long long int denom) { return ::lldiv(numer, denom); }
+
+    inline void srand(unsigned int seed) { return ::srand(seed); }
+    inline int rand(void) { return ::rand(); }
+}

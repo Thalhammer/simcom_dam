@@ -1,0 +1,662 @@
+#pragma once
+
+namespace std {
+    typedef enum memory_order {
+        memory_order_relaxed = __ATOMIC_RELAXED,   // relaxed
+        memory_order_consume = __ATOMIC_CONSUME,   // consume
+        memory_order_acquire = __ATOMIC_ACQUIRE,   // acquire
+        memory_order_release = __ATOMIC_RELEASE,   // release
+        memory_order_acq_rel = __ATOMIC_ACQ_REL,   // acquire/release
+        memory_order_seq_cst = __ATOMIC_SEQ_CST    // sequentially consistent
+    } memory_order;
+
+    template<typename T>
+    inline bool atomic_is_lock_free(const volatile T* obj) noexcept {
+        return __atomic_is_lock_free(sizeof(T), obj);
+    }
+    template<typename T>
+    inline bool atomic_is_lock_free(const T* obj) noexcept {
+        return __atomic_is_lock_free(sizeof(T), obj);
+    }
+
+    template<typename T>
+    inline T atomic_load_explicit (const volatile T* obj, memory_order sync) noexcept {
+        T ret;
+        __atomic_load(obj, &ret, sync);
+        return ret;
+    }
+    template<typename T>
+    inline T atomic_load_explicit (const T* obj, memory_order sync) noexcept {
+        T ret;
+        __atomic_load(obj, &ret, sync);
+        return ret;
+    }
+
+    template<typename T>
+    inline void atomic_store_explicit (volatile T* obj, T val, memory_order sync) noexcept {
+        __atomic_store(obj, &val, sync);
+    }
+    template<typename T>
+    inline void atomic_store_explicit (T* obj, T val, memory_order sync) noexcept {
+        __atomic_store(obj, &val, sync);
+    }
+
+    template<typename T>
+    inline T atomic_load(const volatile T* obj) noexcept {
+        return atomic_load_explicit(obj, memory_order_seq_cst);
+    }
+    template<typename T>
+    inline T atomic_load(const T* obj) noexcept {
+        return atomic_load_explicit(obj, memory_order_seq_cst);
+    }
+
+
+    template<typename T>
+    inline void atomic_store(volatile T* obj, T val) noexcept {
+        return atomic_store_explicit(obj, val, memory_order_seq_cst);
+    }
+    template<typename T>
+    inline void atomic_store(T* obj, T val) noexcept {
+        return atomic_store_explicit(obj, val, memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline void atomic_init (volatile T* obj, T val) noexcept {
+        atomic_store(obj, val);
+    }
+    template<typename T>
+    inline void atomic_init (T* obj, T val) noexcept {
+        atomic_store(obj, val);
+    }
+
+
+    template<typename T>
+    inline bool atomic_flag_test_and_set_explicit (volatile T* obj, memory_order sync) noexcept {
+        return __atomic_test_and_set(obj,sync);
+    }
+    template<typename T>
+    inline bool atomic_flag_test_and_set_explicit (T* obj, memory_order sync) noexcept {
+        return __atomic_test_and_set(obj,sync);
+    }
+
+    template<typename T>
+    inline bool atomic_flag_test_and_set(volatile T* obj) noexcept {
+        return atomic_flag_test_and_set_explicit(obj,memory_order_seq_cst);
+    }
+    template<typename T>
+    inline bool atomic_flag_test_and_set(T* obj) noexcept {
+        return atomic_flag_test_and_set_explicit(obj,memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline void atomic_flag_clear_explicit(volatile T* obj, memory_order sync) noexcept {
+        __atomic_clear(obj, sync);
+    }
+    template<typename T>
+    inline void atomic_flag_clear_explicit(T* obj, memory_order sync) noexcept {
+        __atomic_clear(obj, sync);
+    }
+
+    template<typename T>
+    inline void atomic_flag_clear(volatile T* obj) noexcept {
+        atomic_flag_clear_explicit(obj, memory_order_seq_cst);
+    }
+    template<typename T>
+    inline void atomic_flag_clear(T* obj) noexcept {
+        atomic_flag_clear_explicit(obj, memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_xor_explicit(volatile T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_xor(obj, val, sync);
+    }
+    template<typename T>
+    inline T atomic_fetch_xor_explicit(T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_xor(obj, val, sync);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_xor(volatile T* obj, T val) noexcept {
+        return atomic_fetch_xor_explicit(obj, val, memory_order_seq_cst);
+    }
+    template<typename T>
+    inline T atomic_fetch_xor(T* obj, T val) noexcept {
+        return atomic_fetch_xor_explicit(obj, val, memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_sub_explicit(volatile T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_sub(obj, val, sync);
+    }
+    template<typename T>
+    inline T atomic_fetch_sub_explicit(T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_sub(obj, val, sync);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_sub(volatile T* obj, T val) noexcept {
+        return atomic_fetch_sub_explicit(obj, val, memory_order_seq_cst);
+    }
+    template<typename T>
+    inline T atomic_fetch_sub(T* obj, T val) noexcept {
+        return atomic_fetch_sub_explicit(obj, val, memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_or_explicit(volatile T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_or(obj, val, sync);
+    }
+    template<typename T>
+    inline T atomic_fetch_or_explicit(T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_or(obj, val, sync);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_or(volatile T* obj, T val) noexcept {
+        return atomic_fetch_or_explicit(obj, val, memory_order_seq_cst);
+    }
+    template<typename T>
+    inline T atomic_fetch_or(T* obj, T val) noexcept {
+        return atomic_fetch_or_explicit(obj, val, memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_and_explicit(volatile T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_and(obj, val, sync);
+    }
+    template<typename T>
+    inline T atomic_fetch_and_explicit(T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_and(obj, val, sync);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_and(volatile T* obj, T val) noexcept {
+        return atomic_fetch_and_explicit(obj, val, memory_order_seq_cst);
+    }
+    template<typename T>
+    inline T atomic_fetch_and(T* obj, T val) noexcept {
+        return atomic_fetch_and_explicit(obj, val, memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_add_explicit(volatile T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_add(obj, val, sync);
+    }
+    template<typename T>
+    inline T atomic_fetch_add_explicit(T* obj, T val, memory_order sync) noexcept {
+        return __atomic_fetch_add(obj, val, sync);
+    }
+
+    template<typename T>
+    inline T atomic_fetch_add(volatile T* obj, T val) noexcept {
+        return atomic_fetch_add_explicit(obj, val, memory_order_seq_cst);
+    }
+    template<typename T>
+    inline T atomic_fetch_add(T* obj, T val) noexcept {
+        return atomic_fetch_add_explicit(obj, val, memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline T atomic_exchange_explicit(volatile T* obj, T val, memory_order sync) noexcept {
+        return __atomic_exchange(obj, val, sync);
+    }
+    template<typename T>
+    inline T atomic_exchange_explicit(T* obj, T val, memory_order sync) noexcept {
+        return __atomic_exchange(obj, val, sync);
+    }
+
+    template<typename T>
+    inline T atomic_exchange(volatile T* obj, T val) noexcept {
+        return atomic_exchange_explicit(obj, val, memory_order_seq_cst);
+    }
+    template<typename T>
+    inline T atomic_exchange(T* obj, T val) noexcept {
+        return atomic_exchange_explicit(obj, val, memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline bool atomic_compare_exchange_weak_explicit(volatile T* obj, T* expected, T val, memory_order success, memory_order failure) noexcept {
+        return __atomic_compare_exchange(obj, expected, val, true, success, failure);
+    }
+    template<typename T>
+    inline bool atomic_compare_exchange_weak_explicit(T* obj, T* expected, T val, memory_order success, memory_order failure) noexcept {
+        return __atomic_compare_exchange(obj, expected, val, true, success, failure);
+    }
+
+    template<typename T>
+    inline bool atomic_compare_exchange_weak(volatile T* obj, T* expected, T val) noexcept {
+        return atomic_compare_exchange_weak_explicit(obj, expected, val, memory_order_seq_cst,memory_order_seq_cst);
+    }
+    template<typename T>
+    inline bool atomic_compare_exchange_weak(T* obj, T* expected, T val) noexcept {
+        return atomic_compare_exchange_weak_explicit(obj, expected, val, memory_order_seq_cst,memory_order_seq_cst);
+    }
+
+    template<typename T>
+    inline bool atomic_compare_exchange_strong_explicit(volatile T* obj, T* expected, T val, memory_order success, memory_order failure) noexcept {
+        return __atomic_compare_exchange(obj, expected, val, false, success, failure);
+    }
+    template<typename T>
+    inline bool atomic_compare_exchange_strong_explicit(T* obj, T* expected, T val, memory_order success, memory_order failure) noexcept {
+        return __atomic_compare_exchange(obj, expected, val, false, success, failure);
+    }
+
+    template<typename T>
+    inline bool atomic_compare_exchange_strong(volatile T* obj, T* expected, T val) noexcept {
+        return atomic_compare_exchange_strong_explicit(obj, expected, val, memory_order_seq_cst,memory_order_seq_cst);
+    }
+    template<typename T>
+    inline bool atomic_compare_exchange_strong(T* obj, T* expected, T val) noexcept {
+        return atomic_compare_exchange_strong_explicit(obj, expected, val, memory_order_seq_cst,memory_order_seq_cst);
+    }
+
+    struct atomic_flag
+    {
+        atomic_flag() noexcept = default;
+        ~atomic_flag() noexcept = default;
+
+        atomic_flag(const atomic_flag&) = delete;
+        atomic_flag& operator=(const atomic_flag&) = delete;
+        atomic_flag& operator=(const atomic_flag&) volatile = delete;
+
+        constexpr atomic_flag(bool init) noexcept
+            : m_data(init)
+        { }
+
+        bool test_and_set(memory_order sync = memory_order_seq_cst) noexcept {
+            return atomic_flag_test_and_set_explicit(&m_data, sync);
+        }
+
+        bool test_and_set(memory_order sync = memory_order_seq_cst) volatile noexcept {
+            return atomic_flag_test_and_set_explicit(&m_data, sync);
+        }
+
+        void clear(memory_order sync = memory_order_seq_cst) noexcept {
+            atomic_flag_clear_explicit(&m_data, sync);
+        }
+
+        void clear(memory_order sync = memory_order_seq_cst) volatile noexcept {
+            atomic_flag_clear_explicit(&m_data, sync);
+        }
+    private:
+        bool m_data;
+    };
+
+    namespace detail {
+        template<typename T, bool>
+        class atomic_base;
+
+        template<typename T>
+        class atomic_base<T, true> {
+        protected:
+            T m_data;
+        public:
+            atomic_base() noexcept = default;
+            constexpr atomic_base(T val) noexcept
+                : m_data(val)
+            {}
+            atomic_base(const atomic_base&) = delete;
+
+            T operator=(T val) noexcept {
+                atomic_store(&m_data, val);
+                return val;
+            }
+            T operator=(T val) volatile noexcept {
+                atomic_store(&m_data, val);
+                return val;
+            }
+
+            atomic_base& operator= (const atomic_base&) = delete;
+            atomic_base& operator= (const atomic_base&) volatile = delete;
+
+            bool is_lock_free() const volatile noexcept {
+                return atomic_is_lock_free(&m_data);
+            }
+            bool is_lock_free() const noexcept {
+                return atomic_is_lock_free(&m_data);
+            }
+
+            void store (T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+                atomic_store_explicit(&m_data, val, sync);
+            }
+            void store (T val, memory_order sync = memory_order_seq_cst) noexcept {
+                atomic_store_explicit(&m_data, val, sync);
+            }
+
+            T load (memory_order sync = memory_order_seq_cst) const volatile noexcept {
+                return atomic_load_explicit(&m_data, sync);
+            }
+            T load (memory_order sync = memory_order_seq_cst) const noexcept {
+                return atomic_load_explicit(&m_data, sync);
+            }
+
+            operator T() const volatile noexcept {
+                return load();
+            }
+            operator T() const noexcept {
+                return load();
+            }
+
+            T exchange (T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+                return atomic_exchange_explicit(&m_data, val, sync);
+            }
+            T exchange (T val, memory_order sync = memory_order_seq_cst) noexcept {
+                return atomic_exchange_explicit(&m_data, val, sync);
+            }
+
+            bool compare_exchange_weak (T& expected, T val, memory_order success, memory_order failure) volatile noexcept {
+                return atomic_compare_exchange_weak_explicit(&m_data, &expected, val, success, failure);
+            }
+            bool compare_exchange_weak (T& expected, T val, memory_order success, memory_order failure) noexcept {
+                return atomic_compare_exchange_weak_explicit(&m_data, &expected, val, success, failure);
+            }
+
+            bool compare_exchange_weak (T& expected, T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+                return compare_exchange_weak(expected, val, sync, sync);
+            }
+            bool compare_exchange_weak (T& expected, T val, memory_order sync = memory_order_seq_cst) noexcept {
+                return compare_exchange_weak(expected, val, sync, sync);
+            }
+
+            bool compare_exchange_strong (T& expected, T val, memory_order success, memory_order failure) volatile noexcept {
+                return atomic_compare_exchange_strong_explicit(&m_data, &expected, val, success, failure);
+            }
+            bool compare_exchange_strong (T& expected, T val, memory_order success, memory_order failure) noexcept {
+                return atomic_compare_exchange_strong_explicit(&m_data, &expected, val, success, failure);
+            }
+
+            bool compare_exchange_strong (T& expected, T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+                return compare_exchange_strong(expected, val, sync, sync);
+            }
+            bool compare_exchange_strong (T& expected, T val, memory_order sync = memory_order_seq_cst) noexcept {
+                return compare_exchange_strong(expected, val, sync, sync);
+            }
+        };
+
+        template<typename T>
+        class atomic_base<T, false> {
+        protected:
+            T m_data;
+            template <typename...>
+            struct always_false { static constexpr bool value = false; };
+            static_assert(always_false<T>::value, "Not implemented");
+        public:
+            atomic_base() noexcept = default;
+            constexpr atomic_base(T val) noexcept
+                : m_data(val)
+            {
+            }
+            atomic_base(const atomic_base&) = delete;
+/*
+            T operator=(T val) noexcept {
+                atomic_store(&m_data, val);
+                return val;
+            }
+            T operator=(T val) volatile noexcept {
+                atomic_store(&m_data, val);
+                return val;
+            }
+
+            atomic_base& operator= (const atomic_base&) = delete;
+            atomic_base& operator= (const atomic_base&) volatile = delete;
+
+            bool is_lock_free() const volatile noexcept {
+                return atomic_is_lock_free(&m_data);
+            }
+            bool is_lock_free() const noexcept {
+                return atomic_is_lock_free(&m_data);
+            }
+
+            void store (T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+                atomic_store_explicit(&m_data, val, sync);
+            }
+            void store (T val, memory_order sync = memory_order_seq_cst) noexcept {
+                atomic_store_explicit(&m_data, val, sync);
+            }
+
+            T load (memory_order sync = memory_order_seq_cst) const volatile noexcept {
+                return atomic_load_explicit(&m_data, sync);
+            }
+            T load (memory_order sync = memory_order_seq_cst) const noexcept {
+                return atomic_load_explicit(&m_data, sync);
+            }
+
+            operator T() const volatile noexcept {
+                return load();
+            }
+            operator T() const noexcept {
+                return load();
+            }
+
+            T exchange (T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+                return atomic_exchange_explicit(&m_data, val, sync);
+            }
+            T exchange (T val, memory_order sync = memory_order_seq_cst) noexcept {
+                return atomic_exchange_explicit(&m_data, val, sync);
+            }
+
+            bool compare_exchange_weak (T& expected, T val, memory_order success, memory_order failure) volatile noexcept {
+                return atomic_compare_exchange_weak_explicit(&m_data, &expected, val, success, failure);
+            }
+            bool compare_exchange_weak (T& expected, T val, memory_order success, memory_order failure) noexcept {
+                return atomic_compare_exchange_weak_explicit(&m_data, &expected, val, success, failure);
+            }
+
+            bool compare_exchange_weak (T& expected, T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+                return compare_exchange_weak(expected, val, sync, sync);
+            }
+            bool compare_exchange_weak (T& expected, T val, memory_order sync = memory_order_seq_cst) noexcept {
+                return compare_exchange_weak(expected, val, sync, sync);
+            }
+
+            bool compare_exchange_strong (T& expected, T val, memory_order success, memory_order failure) volatile noexcept {
+                return atomic_compare_exchange_strong_explicit(&m_data, &expected, val, success, failure);
+            }
+            bool compare_exchange_strong (T& expected, T val, memory_order success, memory_order failure) noexcept {
+                return atomic_compare_exchange_strong_explicit(&m_data, &expected, val, success, failure);
+            }
+
+            bool compare_exchange_strong (T& expected, T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+                return compare_exchange_strong(expected, val, sync, sync);
+            }
+            bool compare_exchange_strong (T& expected, T val, memory_order sync = memory_order_seq_cst) noexcept {
+                return compare_exchange_strong(expected, val, sync, sync);
+            }
+*/
+        };
+    }
+
+    template<typename T>
+    class atomic : public detail::atomic_base<T, std::is_pointer<T>::value | std::is_integral<T>::value> {
+    public:
+        using detail::atomic_base<T, std::is_pointer<T>::value | std::is_integral<T>::value>::atomic_base;
+
+        T fetch_add (T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+            return atomic_fetch_add_explicit(&this->m_data, val, sync);
+        }
+
+        T fetch_add (T val, memory_order sync = memory_order_seq_cst) noexcept {
+            return atomic_fetch_add_explicit(&this->m_data, val, sync);
+        }
+
+        T fetch_sub (T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+            return atomic_fetch_sub_explicit(&this->m_data, val, sync);
+        }
+
+        T fetch_sub (T val, memory_order sync = memory_order_seq_cst) noexcept {
+            return atomic_fetch_sub_explicit(&this->m_data, val, sync);
+        }
+
+        T fetch_and (T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+            return atomic_fetch_and_explicit(&this->m_data, val, sync);
+        }
+
+        T fetch_and (T val, memory_order sync = memory_order_seq_cst) noexcept {
+            return atomic_fetch_and_explicit(&this->m_data, val, sync);
+        }
+
+        T fetch_or (T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+            return atomic_fetch_or_explicit(&this->m_data, val, sync);
+        }
+
+        T fetch_or (T val, memory_order sync = memory_order_seq_cst) noexcept {
+            return atomic_fetch_or_explicit(&this->m_data, val, sync);
+        }
+
+        T fetch_xor (T val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+            return atomic_fetch_xor_explicit(&this->m_data, val, sync);
+        }
+
+        T fetch_xor (T val, memory_order sync = memory_order_seq_cst) noexcept {
+            return atomic_fetch_xor_explicit(&this->m_data, val, sync);
+        }
+
+        T operator++() volatile noexcept {
+            return fetch_add(1) + 1;
+        }
+
+        T operator++() noexcept {
+            return fetch_add(1) + 1;
+        }
+
+        T operator++ (int) volatile noexcept {
+            return fetch_add(1);
+        }
+
+        T operator++ (int) noexcept {
+            return fetch_add(1);
+        }
+
+        T operator--() volatile noexcept {
+            return fetch_sub(1) - 1;
+        }
+
+        T operator--() noexcept {
+            return fetch_sub(1) - 1;
+        }
+
+        T operator-- (int) volatile noexcept {
+            return fetch_sub(1);
+        }
+
+        T operator-- (int) noexcept {
+            return fetch_sub(1);
+        }
+
+        T operator+= (T val) volatile noexcept {
+            return fetch_add(val);
+        }
+
+        T operator+= (T val) noexcept {
+            return fetch_add(val);
+        }
+
+        T operator-= (T val) volatile noexcept {
+            return fetch_sub(val);
+        }
+
+        T operator-= (T val) noexcept {
+            return fetch_sub(val);
+        }
+
+        T operator&= (T val) volatile noexcept {
+            return fetch_and(val);
+        }
+
+        T operator&= (T val) noexcept {
+            return fetch_and(val);
+        }
+
+        T operator|= (T val) volatile noexcept {
+            return fetch_or(val);
+        }
+
+        T operator|= (T val) noexcept {
+            return fetch_or(val);
+        }
+
+        T operator^= (T val) volatile noexcept {
+            return fetch_xor(val);
+        }
+
+        T operator^= (T val) noexcept {
+            return fetch_xor(val);
+        }
+    };
+
+    template<typename T>
+    class atomic<T*> : public detail::atomic_base<T*, true> {
+    public:
+        using detail::atomic_base<T*, true>::atomic_base;
+
+        T* fetch_add (ptrdiff_t val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+            return atomic_fetch_add_explicit(&this->m_data, (T*)(val * sizeof(T)), sync);
+        }
+        
+        T* fetch_add (ptrdiff_t val, memory_order sync = memory_order_seq_cst) noexcept {
+            return atomic_fetch_add_explicit(&this->m_data, (T*)(val * sizeof(T)), sync);
+        }
+
+        T* fetch_sub (ptrdiff_t val, memory_order sync = memory_order_seq_cst) volatile noexcept {
+            return atomic_fetch_sub_explicit(&this->m_data, (T*)(val * sizeof(T)), sync);
+        }
+        
+        T* fetch_sub (ptrdiff_t val, memory_order sync = memory_order_seq_cst) noexcept {
+            return atomic_fetch_sub_explicit(&this->m_data, (T*)(val * sizeof(T)), sync);
+        }
+
+        T operator++() volatile noexcept {
+            return fetch_add(1) + 1;
+        }
+
+        T operator++() noexcept {
+            return fetch_add(1) + 1;
+        }
+
+        T operator++ (int) volatile noexcept {
+            return fetch_add(1);
+        }
+
+        T operator++ (int) noexcept {
+            return fetch_add(1);
+        }
+
+        T operator--() volatile noexcept {
+            return fetch_sub(1) - 1;
+        }
+
+        T operator--() noexcept {
+            return fetch_sub(1) - 1;
+        }
+
+        T operator-- (int) volatile noexcept {
+            return fetch_sub(1);
+        }
+
+        T operator-- (int) noexcept {
+            return fetch_sub(1);
+        }
+
+        T operator+= (ptrdiff_t val) volatile noexcept {
+            return fetch_add(val);
+        }
+
+        T operator+= (ptrdiff_t val) noexcept {
+            return fetch_add(val);
+        }
+
+        T operator-= (ptrdiff_t val) volatile noexcept {
+            return fetch_sub(val);
+        }
+
+        T operator-= (ptrdiff_t val) noexcept {
+            return fetch_sub(val);
+        }
+
+    };
+}
+
+#define atomic_thread_fence(x) __atomic_thread_fence(x)
+#define atomic_signal_fence(x) __atomic_signal_fence(x)
+
+#define ATOMIC_FLAG_INIT {0}

@@ -1,0 +1,43 @@
+#pragma once
+
+#if !__cplusplus
+#error "This is a C++ header"
+#endif
+
+#include "string.h"
+
+namespace std {
+    inline void* memchr(void* ptr, int value, size_t num) { return ::memchr(ptr, value, num); }
+    inline const void* memchr(const void* ptr, int value, size_t num) { return ::memchr(ptr, value, num); }
+    inline void* memset(void* ptr, int value, size_t num) { return ::memset(ptr, value, num); }
+    inline void* memcpy(void* destination, const void* source, size_t num) { return ::memcpy(destination, source, num); }
+    inline void* memmove(void* destination, const void* source, size_t num) { return ::memmove(destination, source, num); }
+    inline int memcmp(const void* destination, const void* source, size_t num) { return ::memcmp(destination, source, num); }
+
+    inline char* strcat(char* dest, const char* src) { return ::strcat(dest, src); }
+    inline size_t strlen(const char* str) { return ::strlen(str); }
+    inline int strcmp(const char* str1, const char* str2) { return ::strcmp(str1, str2); }
+    inline char* strchr(char* str, int c) { return ::strchr(str, c); }
+    inline const char* strchr(const char* str, int c) { return ::strchr(str, c); }
+    inline char* strcpy(char* dest, const char* src) { return ::strcpy(dest, src); }
+    inline size_t strcspn(const char *s1, const char *s2) { return ::strcspn(s1, s2); }
+    inline const char* strerror(int errnum) { return ::strerror(errnum); }
+    inline char* strncat(char *dest, const char *src, size_t n) { return ::strncat(dest, src, n); }
+    inline int strncmp(const char* s1, const char* s2, size_t n) { return ::strncmp(s1, s2, n); }
+    inline char* strncpy(char* dest, const char* src, size_t n) { return ::strncpy(dest, src, n); }
+    inline char* strpbrk(char *s1, char *s2) { return ::strpbrk(s1, s2); }
+    inline const char* strpbrk(const char *s1, const char *s2) { return ::strpbrk(s1, s2); }
+    inline char* strrchr(char *s, int c) { return ::strrchr(s, c); }
+    inline const char* strrchr(const char *s, int c) { return ::strrchr(s, c); }
+    inline size_t strspn(const char *s1, const char *s2) { return ::strspn(s1, s2); }
+    inline char* strstr(char* s1, const char* s2) { return ::strstr(s1, s2); }
+    inline const char* strstr(const char* s1, const char* s2) { return ::strstr(s1, s2); }
+	
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+    inline char* strtok(char* str, const char* delim) { return ::strtok(str, delim); }
+#pragma GCC diagnostic pop
+
+    inline char* strtok_s(char* str, const char* delimiters, char** context) { return ::strtok_s(str, delimiters, context); }
+    inline size_t strxfrm(char* dest, const char* src, size_t n) { return ::strxfrm(dest, src, n); }
+}

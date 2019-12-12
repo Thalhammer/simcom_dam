@@ -1,0 +1,7 @@
+#pragma once
+
+#if !__cplusplus
+#error "This is a C++ header"
+#endif
+
+#include "iso646.h"

@@ -1,0 +1,112 @@
+#pragma once
+#include <stdexcept>
+#include <new>
+
+namespace std {
+    struct nullopt_t {
+        explicit constexpr nullopt_t(int) {}
+    };
+    struct inplace_t {
+        explicit constexpr inplace_t(int) {}
+    };
+    class bad_optional_access : public std::exception {
+        using std::exception::exception;
+    };
+
+    template<typename T>
+    class optional {
+        bool m_initialized;
+        alignas(alignof(T)) uint8_t m_storage[sizeof(T)];
+    public:
+        constexpr optional() noexcept
+            : m_initialized(false)
+        {}
+        constexpr optional(nullopt_t) noexcept
+            : m_initialized(false)
+        {}
+        constexpr optional(const optional& other)
+            : m_initialized(other.m_initialized)
+        {
+            if(m_initialized) {
+                new(m_storage) T(*reinterpret_cast<T*>(other.m_storage));
+            }
+        }
+        constexpr optional(T&& value)
+            : m_initialized(false)
+        {
+            new(m_storage) T(value);
+            m_initialized = true;
+        }
+
+        ~optional() {
+            reset();
+        }
+
+        void reset() noexcept {
+            if(m_initialized)
+                reinterpret_cast<T*>(m_storage)->~T();
+            m_initialized = false;
+        }
+
+        template<typename... Args>
+        T& emplace(Args&&... args) {
+            reset();
+            new (m_storage) T(std::forward<Args>(args)...);
+            m_initialized = true;
+        }
+
+        constexpr const T* operator->() const {
+            return reinterpret_cast<const T*>(m_storage);
+        }
+
+        constexpr T* operator->() {
+            return reinterpret_cast<T*>(m_storage);
+        }
+
+        constexpr const T& operator*() const {
+            return *reinterpret_cast<const T*>(m_storage);
+        }
+
+        constexpr T& operator*() {
+            return *reinterpret_cast<T*>(m_storage);
+        }
+
+        constexpr explicit operator bool() const noexcept {
+            return m_initialized;
+        }
+
+        constexpr bool has_value() const noexcept {
+            return m_initialized;
+        }
+
+        constexpr T& value() & {
+            if(!has_value()) throw std::bad_optional_access("bad optional access");
+            return *reinterpret_cast<T*>(m_storage);
+        }
+
+        constexpr const T& value() const & {
+            if(!has_value()) throw std::bad_optional_access("bad optional access");
+            return *reinterpret_cast<const T*>(m_storage);
+        }
+
+        constexpr T&& value() && {
+            if(!has_value()) throw std::bad_optional_access("bad optional access");
+            return *reinterpret_cast<T*>(m_storage);
+        }
+
+        constexpr const T&& value() const && {
+            if(!has_value()) throw std::bad_optional_access("bad optional access");
+            return *reinterpret_cast<const T*>(m_storage);
+        }
+
+        template<class U>
+        constexpr T value_or(U&& default_value) const & {
+            return bool(*this) ? **this : static_cast<T>(std::forward<U>(default_value));
+        }
+
+        template<class U>
+        constexpr T value_or(U&& default_value) && {
+            return bool(*this) ? std::move(**this) : static_cast<T>(std::forward<U>(default_value));
+        }
+    };
+}

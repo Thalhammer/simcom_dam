@@ -13,8 +13,8 @@ FLAGS += -DQAPI_TXM_MODULE -DTXM_MODULE -DTX_ENABLE_PROFILING -DTX_ENABLE_EVENT_
 FLAGS += -O2 -Wall -Wextra -Werror -mcpu=cortex-a7 -marm -mno-unaligned-access -nostdlib -nostdinc -mfloat-abi=soft -ffunction-sections -fdata-sections -fno-omit-frame-pointer
 FLAGS += -mtp=cp15
 CFLAGS +=
-CXXFLAGS += --std=c++11 -fno-exceptions -fno-rtti -fno-unwind-tables
-INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi -I $(DAM_INC_BASE)/stdlib -I $(SELF_DIR)
+CXXFLAGS += --std=c++11
+INC_PATHS +=-I $(DAM_INC_BASE) -I $(DAM_INC_BASE)/threadx_api -I $(DAM_INC_BASE)/qapi -I $(DAM_INC_BASE)/stdlib -I $(SELF_DIR) -I $(SELF_DIR)../uc++lib/libc/include -I $(SELF_DIR)../uc++lib/libc++/include
 
 include $(SELF_DIR)config.mk
 -include config.mk
@@ -65,7 +65,7 @@ $(OUTNAME).bin: $(OUTNAME).elf
 $(OUTNAME).elf: $(OBJ) $(SELF_DIR)/linker.lds $(SELF_DIR)/../api/bin/lib.a
 	@mkdir -p $(OUTPUT_PATH)
 	@echo Linking $@
-	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T $(SELF_DIR)/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map --start-group $(OBJ) $(SELF_DIR)/../api/bin/lib.a $(LIB_GCC) --end-group -gc-sections -z defs --print-memory-usage
+	@$(LINK) -o $@ -e _txm_module_thread_shell_entry -T $(SELF_DIR)/linker.lds --entry=__txm_module_preamble -Map=$(OUTNAME).map --start-group $(OBJ) $(SELF_DIR)/../api/bin/lib.a $(LIB_GCC) $(SELF_DIR)/../uc++lib/libc++rt/libc++rt.a  $(SELF_DIR)/../uc++lib/libc++/libc++.a  $(SELF_DIR)/../uc++lib/libc/libc.a --end-group -gc-sections -z defs --print-memory-usage
 
 %.c.o: %.c
 	@echo Building $<

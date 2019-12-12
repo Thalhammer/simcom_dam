@@ -1,0 +1,123 @@
+#pragma once
+#include "cstddef"
+#include "stdexcept"
+
+namespace std {
+    template<class T, size_t N>
+    class array {
+    public:
+        typedef T value_type;
+        typedef value_type& reference;
+        typedef const value_type& const_reference;
+        typedef value_type* pointer;
+        typedef const value_type* const_pointer;
+        typedef pointer iterator;
+        typedef const_pointer const_iterator;
+        //typedef reverse_iterator<iterator> reverse_iterator;
+        //typedef reverse_iterator<const_iterator> const_reverse_iterator;
+        typedef size_t size_type;
+        typedef ptrdiff_t difference_type;
+    private:
+        value_type m_data[N];
+    public:
+        reference at(size_type n) {
+            if(__builtin_expect((n <= N),1)) return m_data[n];
+            else throw std::out_of_range("n is not within array bounds");
+        }
+        const_reference at(size_type n) const {
+            if(__builtin_expect((n <= N),1)) return m_data[n];
+            else throw std::out_of_range("n is not within array bounds");
+        }
+
+        reference operator[](size_type n) noexcept { return m_data[n]; }
+        const_reference operator[](size_type n) const noexcept { return m_data[n]; }
+
+        reference back() noexcept { return m_data[N-1]; }
+        const_reference back() const noexcept { return m_data[N-1]; }
+
+        reference front() noexcept { return m_data[0]; }
+        const_reference front() const noexcept { return m_data[0]; }
+
+        iterator begin() noexcept { return &m_data[0]; }
+        const_iterator begin() const noexcept { return &m_data[0]; }
+        const_iterator cbegin() const noexcept { return &m_data[0]; }
+        //reverse_iterator rbegin() noexcept { /* TODO */ }
+        //const_reverse_iterator rbegin() const noexcept { /* TODO */ }
+        //const_reverse_iterator crbegin() const noexcept { /* TODO */ }
+
+
+        iterator end() noexcept { return &m_data[N]; }
+        const_iterator end() const noexcept { return &m_data[N]; }
+        const_iterator cend() const noexcept { return &m_data[N]; }
+        //reverse_iterator rend() noexcept { /* TODO */ }
+        //const_reverse_iterator rend() const noexcept { /* TODO */ }
+        //const_reverse_iterator crend() const noexcept { /* TODO */ }
+
+        pointer data() noexcept { return m_data; }
+        const_pointer data() const noexcept { return m_data; }
+
+        constexpr size_type size() const noexcept { return N; }
+        constexpr size_type max_size() const noexcept { return N; }
+        constexpr bool empty() const noexcept { return N == 0; }
+
+        void fill(const_reference val) {
+            for(size_type i = 0; i<N; i++) {
+                m_data[i] = val;
+            }
+        }
+
+        void swap(array& x) /*noexcept(noexcept(swap(declval<value_type&>(),declval<value_type&>())))*/ {
+            for(size_type i = 0; i<N; i++)
+                std::swap(m_data[i], x.m_data[i]);
+        }
+    };
+
+    template <class Tpl> class tuple_size;
+    template <class T, size_t N>
+    struct tuple_size< array<T,N> > : integral_constant <size_t,N> {};
+
+    template <size_t I, class Tpl> class tuple_element;
+    template <size_t I, class T, size_t N> struct tuple_element <I, array<T,N>>
+    {
+        typedef T type;
+    };
+
+    template <size_t I, class T, size_t N> T& get(array<T,N>& arr) noexcept { return arr[I]; }
+    template <size_t I, class T, size_t N> T&& get(array<T,N>&& arr) noexcept { return arr[I]; }
+    template <size_t I, class T, size_t N> const T& get(const array<T,N>& arr) noexcept { return arr[I]; }
+
+    template <class T, size_t N>
+    bool operator==(const array<T,N>& lhs, const array<T,N>& rhs ) {
+        for(size_t i=0; i<N; i++) if(!(lhs[i] == rhs[i])) return false;
+        return true;
+    }
+
+    template <class T, size_t N>
+    bool operator!=(const array<T,N>& lhs, const array<T,N>& rhs ) {
+        return !(lhs == rhs);
+    }
+
+    template <class T, size_t N>
+    bool operator<(const array<T,N>& lhs, const array<T,N>& rhs) {
+        for(size_t i = 0; i< N; i++) {
+            if(lhs[i] < rhs[i]) return true;
+            else if(rhs[i] < lhs[i]) return false;
+        }
+        return false;
+    }
+
+    template <class T, size_t N>
+    bool operator<=(const array<T,N>& lhs, const array<T,N>& rhs) {
+        return !(rhs<lhs);
+    }
+
+    template <class T, size_t N>
+    bool operator>(const array<T,N>& lhs, const array<T,N>& rhs) {
+        return rhs < lhs;
+    }
+
+    template <class T, size_t N>
+    bool operator>=(const array<T,N>& lhs, const array<T,N>& rhs) {
+        return !(lhs<rhs);
+    }
+}

@@ -1,0 +1,308 @@
+#pragma once
+#include "type_traits"
+#include "string"
+#include "stdexcept"
+
+namespace std {
+    template<typename T>
+    struct is_error_code_enum : false_type {};
+    template<typename T>
+    struct is_error_condition_enum : false_type {};
+
+    class error_condition;
+    class error_code;
+
+    enum class errc {
+        success = 0,
+        address_family_not_supported,
+        address_in_use,
+        address_not_available,
+        already_connected,
+        argument_list_too_long,
+        argument_out_of_domain,
+        bad_address,
+        bad_file_descriptor,
+        bad_message,
+        broken_pipe,
+        connection_aborted,
+        connection_already_in_progress,
+        connection_refused,
+        connection_reset,
+        cross_device_link,
+        destination_address_required,
+        device_or_resource_busy,
+        directory_not_empty,
+        executable_format_error,
+        file_exists,
+        file_too_large,
+        filename_too_long,
+        function_not_supported,
+        host_unreachable,
+        identifier_removed,
+        illegal_byte_sequence,
+        inappropriate_io_control_operation,
+        interrupted,
+        invalid_argument,
+        invalid_seek,
+        io_error,
+        is_a_directory,
+        message_size,
+        network_down,
+        network_reset,
+        network_unreachable,
+        no_buffer_space,
+        no_child_process,
+        no_link,
+        no_lock_available,
+        no_message,
+        no_message_available,
+        no_protocol_option,
+        no_space_on_device,
+        no_stream_resources,
+        no_such_device,
+        no_such_device_or_address,
+        no_such_file_or_directory,
+        no_such_process,
+        not_a_directory,
+        not_a_socket,
+        not_a_stream,
+        not_connected,
+        not_enough_memory,
+        not_supported,
+        operation_canceled,
+        operation_in_progress,
+        operation_not_permitted,
+        operation_not_supported,
+        operation_would_block,
+        owner_dead,
+        permission_denied,
+        protocol_error,
+        protocol_not_supported,
+        read_only_file_system,
+        resource_deadlock_would_occur,
+        resource_unavailable_try_again,
+        result_out_of_range,
+        state_not_recoverable,
+        stream_timeout,
+        text_file_busy,
+        timed_out,
+        too_many_files_open,
+        too_many_files_open_in_system,
+        too_many_links,
+        too_many_symbolic_link_levels,
+        value_too_large,
+        wrong_protocol_type
+    };
+
+    template<>
+    struct is_error_condition_enum<errc> : true_type {};
+
+    class error_category {
+    public:
+        constexpr error_category() noexcept {}
+        error_category(const error_category&) = delete;
+
+        virtual ~error_category() {}
+
+        virtual const char* name() const noexcept = 0;
+        virtual std::string message(int val) const = 0;
+        virtual error_condition default_error_condition(int val) const noexcept;
+        virtual bool equivalent(int valcode, const error_condition& cond) const noexcept;
+        virtual bool equivalent(const error_code& code, int valcond) const noexcept;
+
+        bool operator== (const error_category& rhs) const noexcept {
+            return this == &rhs;
+        }
+
+        bool operator!= (const error_category& rhs) const noexcept {
+            return this != &rhs;
+        }
+
+        bool operator<  (const error_category& rhs) const noexcept {
+            return this < &rhs;
+        }
+    };
+
+    const error_category& system_category() noexcept;
+    const error_category& generic_category() noexcept;
+
+    inline error_condition make_error_condition (errc e) noexcept;
+    inline error_code make_error_code (errc e) noexcept;
+
+    class error_condition {
+        int m_value;
+        const error_category* m_category;
+    public:
+        error_condition() noexcept
+            : m_value(0), m_category(&generic_category())
+        {}
+        error_condition (int val, const error_category& cat) noexcept
+            : m_value(val), m_category(&cat)
+        {}
+
+        template <class ErrorConditionEnum>
+        error_condition(ErrorConditionEnum e, typename std::enable_if<is_error_condition_enum<ErrorConditionEnum>::value>::type* = 0) noexcept {
+            auto code = make_error_condition(e);
+            assign(code.value(), code.category());
+        }
+
+        template <class ErrorConditionEnum>
+        typename std::enable_if<is_error_condition_enum<ErrorConditionEnum>::value, error_condition&>::type
+        operator= (ErrorConditionEnum e) noexcept {
+            auto code = make_error_condition(e);
+            assign(code.value(), code.category());
+            return *this;
+        }
+
+        void assign (int val, const error_category& cat) noexcept {
+            m_value = val;
+            m_category = &cat;
+        }
+
+        void clear() noexcept {
+            assign(0, generic_category());
+        }
+
+        int value() const noexcept {
+            return m_value;
+        }
+
+        const error_category& category() const noexcept {
+            return *m_category;
+        }
+
+        string message() const {
+            return m_category->message(m_value);
+        }
+
+        explicit operator bool() const noexcept {
+            return m_value != 0;
+        }
+    };
+
+    class error_code {
+        int m_value;
+        const error_category* m_category;
+    public:
+        error_code() noexcept
+            : m_value(0), m_category(&system_category())
+        {}
+        error_code (int val, const error_category& cat) noexcept
+            : m_value(val), m_category(&cat)
+        {}
+
+        template <class ErrorCodeEnum>
+        error_code(ErrorCodeEnum e, typename std::enable_if<is_error_code_enum<ErrorCodeEnum>::value>::type* = 0) noexcept
+            : m_value(0), m_category(&system_category())
+        {
+            auto code = make_error_code(e);
+            assign(code.value(), code.category());
+        }
+
+        template <class ErrorCodeEnum>
+        typename std::enable_if<is_error_code_enum<ErrorCodeEnum>::value, error_code&>::type
+        operator= (ErrorCodeEnum e) noexcept {
+            auto code = make_error_code(e);
+            assign(code.value(), code.category());
+            return *this;
+        }
+
+        void assign (int val, const error_category& cat) noexcept {
+            m_value = val;
+            m_category = &cat;
+        }
+
+        void clear() noexcept {
+            assign(0, system_category());
+        }
+
+        int value() const noexcept {
+            return m_value;
+        }
+
+        const error_category& category() const noexcept {
+            return *m_category;
+        }
+
+        error_condition default_error_condition() const noexcept {
+            return m_category->default_error_condition(m_value);
+        }
+
+        string message() const {
+            return m_category->message(m_value);
+        }
+
+        explicit operator bool() const noexcept {
+            return m_value != 0;
+        }
+    };
+
+    template <class T> struct hash;
+    template <> struct hash <error_code> {
+        // TODO: Better hash
+        size_t operator()(const error_code& ec) const noexcept {
+            return ec.value() + reinterpret_cast<size_t>(&ec.category());
+        }
+    };
+
+    inline error_condition make_error_condition (errc e) noexcept {
+        return error_condition(static_cast<int>(e),generic_category());
+    }
+
+    inline error_code make_error_code (errc e) noexcept {
+        return error_code(static_cast<int>(e),generic_category());
+    }
+
+    inline bool operator==(const error_condition& lhs, const error_condition& rhs) noexcept {
+        return lhs.category() == rhs.category() && lhs.value() == rhs.value();
+    }
+
+    inline bool operator!=(const error_condition& lhs, const error_condition& rhs) noexcept {
+        return !(lhs==rhs);
+    }
+
+    inline bool operator<(const error_condition& lhs, const error_condition& rhs) noexcept {
+        return (lhs.category() < rhs.category()) || (lhs.category() == rhs.category() && lhs.value() < rhs.value());
+    }
+
+    inline bool operator== (const error_condition& lhs, const error_code& rhs) noexcept {
+        return lhs.category() == rhs.category() && lhs.value() == rhs.value();
+    }
+
+    inline bool operator== (const error_code& lhs, const error_condition& rhs) noexcept {
+        return lhs.category().equivalent(lhs.value(),rhs) || rhs.category().equivalent(lhs,rhs.value());
+    }
+
+    inline bool operator!= (const error_condition& lhs, const error_code& rhs) noexcept {
+        return !(lhs==rhs);
+    }
+
+    inline bool operator!= (const error_code& lhs, const error_condition& rhs) noexcept {
+        return !(lhs==rhs);
+    }
+
+    class system_error : public runtime_error {
+        error_code m_code;
+    public:
+        system_error (error_code ec, const string& what_arg)
+            : runtime_error(what_arg + " (" + ec.message() + ")"), m_code(ec)
+        {}
+        system_error (error_code ec, const char* what_arg)
+            : runtime_error(std::string(what_arg) + " (" + ec.message() + ")"), m_code(ec)
+        {}
+        system_error (error_code ec)
+            : runtime_error(ec.message()), m_code(ec)
+        {}
+        system_error (int val, const error_category& cat, const string& what_arg)
+            :system_error(error_code(val, cat), what_arg)
+        {}
+        system_error (int val, const error_category& cat, const char* what_arg)
+            :system_error(error_code(val, cat), what_arg)
+        {}
+        system_error (int val, const error_category& cat)
+            :system_error(error_code(val, cat))
+        {}
+
+        const error_code& code() const noexcept { return m_code; }
+    };
+}

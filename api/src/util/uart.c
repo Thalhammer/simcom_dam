@@ -117,6 +117,7 @@ qapi_Status_t uart_write(uart_context_t ctx, const char* str, size_t len) {
 			}
 		}
 	} else {
+		// TODO: More efficient implementation to prevent wait on write if there is space in sendbuf
 		// Lock semaphore
 		tx_semaphore_get(ctx->mtx, TX_WAIT_FOREVER);
 		// Copy data to send buffer
@@ -128,25 +129,14 @@ qapi_Status_t uart_write(uart_context_t ctx, const char* str, size_t len) {
 	return QAPI_OK;
 }
 
-#ifdef __GNUC__
-static int vcb_uart_cb(char* buf, size_t done, void* param) {
-	uart_write((uart_context_t)param, buf, done);
-	return 0;
+static void vcb_uart_cb(char ch, void* param) {
+	uart_write((uart_context_t)param, &ch, 1);
 }
 
 qapi_Status_t uart_vprintf(uart_context_t ctx, const char* fmt, va_list args) {
-	char buf[256];
-	vcbprintf(buf, sizeof(buf), vcb_uart_cb, ctx, fmt, args);
+	vcbprintf(fmt, args, vcb_uart_cb, ctx);
 	return QAPI_OK;
 }
-#else
-qapi_Status_t uart_vprintf(uart_context_t ctx, const char* fmt, va_list args) {
-	char buf[256];
-	vsnprintf(buf, sizeof(buf), fmt, args);
-	uart_write_str(ctx, buf);
-	return QAPI_OK;
-}
-#endif
 
 qapi_Status_t uart_printf(uart_context_t ctx, const char* fmt, ...) {
 	va_list args;

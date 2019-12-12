@@ -1,0 +1,111 @@
+#pragma once
+#include <exception>
+#include <string>
+
+namespace std
+{
+    class logic_error : public exception
+    {
+        std::string m_msg;
+    public:
+        explicit logic_error(const string &__arg);
+
+    #if __cplusplus >= 201103L
+        explicit logic_error(const char *);
+    #endif
+        
+        logic_error(const logic_error &) noexcept;
+        logic_error &operator=(const logic_error &) noexcept;
+
+        virtual ~logic_error() noexcept;
+        virtual const char *what() const noexcept;
+    };
+
+    class domain_error : public logic_error
+    {
+    public:
+        explicit domain_error(const string &__arg);
+    #if __cplusplus >= 201103L
+        explicit domain_error(const char *);
+    #endif
+        virtual ~domain_error() noexcept;
+    };
+
+    class invalid_argument : public logic_error
+    {
+    public:
+        explicit invalid_argument(const string &__arg);
+    #if __cplusplus >= 201103L
+        explicit invalid_argument(const char *);
+    #endif
+        virtual ~invalid_argument() noexcept;
+    };
+
+    class length_error : public logic_error
+    {
+    public:
+        explicit length_error(const string &__arg);
+    #if __cplusplus >= 201103L
+        explicit length_error(const char *);
+    #endif
+        virtual ~length_error() noexcept;
+    };
+
+    class out_of_range : public logic_error
+    {
+    public:
+        explicit out_of_range(const string &__arg);
+    #if __cplusplus >= 201103L
+        explicit out_of_range(const char *);
+    #endif
+        virtual ~out_of_range() noexcept;
+    };
+
+    class runtime_error : public exception
+    {
+        std::string m_msg;
+    public:
+        explicit runtime_error(const string &__arg);
+
+    #if __cplusplus >= 201103L
+        explicit runtime_error(const char *);
+    #endif
+
+        runtime_error(const runtime_error &) noexcept;
+        runtime_error &operator=(const runtime_error &) noexcept;
+
+        virtual ~runtime_error() noexcept;
+
+        virtual const char *what() const noexcept;
+    };
+
+    class range_error : public runtime_error
+    {
+    public:
+        explicit range_error(const string &__arg);
+    #if __cplusplus >= 201103L
+        explicit range_error(const char *);
+    #endif
+        virtual ~range_error() noexcept;
+    };
+
+    class overflow_error : public runtime_error
+    {
+    public:
+        explicit overflow_error(const string &__arg);
+    #if __cplusplus >= 201103L
+        explicit overflow_error(const char *);
+    #endif
+        virtual ~overflow_error() noexcept;
+    };
+
+    class underflow_error : public runtime_error
+    {
+    public:
+        explicit underflow_error(const string &__arg);
+    #if __cplusplus >= 201103L
+        explicit underflow_error(const char *);
+    #endif
+        virtual ~underflow_error() noexcept;
+    };
+}

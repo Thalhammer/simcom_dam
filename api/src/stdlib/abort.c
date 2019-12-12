@@ -1,6 +1,6 @@
 #include "util/trace.h"
 #include "threadx_api/txm_module.h"
-#include <cstdint>
+#include <stdint.h>
 
 #define TRACE_TAG "abort"
 

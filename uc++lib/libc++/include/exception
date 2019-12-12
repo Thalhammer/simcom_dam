@@ -1,0 +1,43 @@
+#pragma once
+
+namespace std
+{
+    class exception
+    {
+    public:
+        exception() noexcept { }
+        virtual ~exception() noexcept;
+    #if __cplusplus >= 201103L
+        exception(const exception&) = default;
+        exception& operator=(const exception&) = default;
+    #endif
+
+        virtual const char* what() const noexcept;
+    };
+    
+    class bad_exception : public exception
+    {
+    public:
+        bad_exception() noexcept {}
+        virtual ~bad_exception() noexcept;
+        virtual const char* what() const noexcept;
+    };
+
+    typedef void (*terminate_handler)();
+    typedef void (*unexpected_handler)();
+    terminate_handler set_terminate(terminate_handler) noexcept;
+    unexpected_handler set_unexpected(unexpected_handler) noexcept;
+    #if __cplusplus >= 201103L
+    terminate_handler get_terminate() noexcept;
+    unexpected_handler get_unexpected() noexcept;
+    #endif
+
+    void terminate() noexcept __attribute__ ((__noreturn__));
+    void unexpected() __attribute__ ((__noreturn__));
+
+    bool uncaught_exception() noexcept __attribute__((__pure__));
+    #if __cplusplus > 201402L || !defined(__STRICT_ANSI__) // c++17 or gnu++98
+    int uncaught_exceptions() noexcept __attribute__((__pure__));
+    #endif
+
+} // namespace std

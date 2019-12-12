@@ -1,0 +1,13 @@
+#pragma once
+
+#if !__cplusplus
+#error "This is a C++ header"
+#endif
+
+#include "locale.h"
+
+namespace std {
+    using lconv = ::lconv;
+    inline const char* setlocale(int category, const char* locale) { return ::setlocale(category, locale); }
+    inline const lconv* localeconv(void) { return ::localeconv(); }
+}

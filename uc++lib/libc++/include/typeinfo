@@ -1,0 +1,57 @@
+#pragma once
+#include <cstddef>
+#include <exception>
+
+namespace __cxxabiv1
+{
+  class __class_type_info;
+}
+
+namespace std
+{
+  class type_info
+  {
+  public:
+    virtual ~type_info();
+    const char* name() const noexcept { return __name[0] == '*' ? __name + 1 : __name; }
+    const char* nice_name() const noexcept;
+
+    bool before(const type_info& __arg) const noexcept { return __name < __arg.__name; }
+
+    bool operator==(const type_info& __arg) const noexcept { return __name == __arg.__name; }
+
+    bool operator!=(const type_info& __arg) const noexcept { return !operator==(__arg); }
+
+    size_t hash_code() const noexcept { return reinterpret_cast<size_t>(__name); }
+
+    virtual bool __is_pointer_p() const;
+    virtual bool __is_function_p() const;
+
+    virtual bool __do_catch(const type_info *__thr_type, void **__thr_obj, unsigned __outer) const;
+    virtual bool __do_upcast(const __cxxabiv1::__class_type_info *__target, void **__obj_ptr) const;
+
+  protected:
+    const char *__name;
+    explicit type_info(const char *__n): __name(__n) { }
+
+  private:
+    type_info& operator=(const type_info&);
+    type_info(const type_info&);
+  };
+
+  class bad_cast : public exception
+  {
+  public:
+    bad_cast() noexcept { }
+    virtual ~bad_cast() noexcept;
+    virtual const char* what() const noexcept;
+  };
+
+  class bad_typeid : public exception
+  {
+  public:
+    bad_typeid () noexcept { }
+    virtual ~bad_typeid() noexcept;
+    virtual const char* what() const noexcept;
+  };
+}
