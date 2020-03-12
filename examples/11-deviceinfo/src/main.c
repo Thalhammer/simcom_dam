@@ -65,12 +65,6 @@ static void devinfo_cb(const qapi_Device_Info_t* info) {
 
 int dam_app_start(void)
 {
-	if(boot_cfg() != 0) return TX_SUCCESS;
-	if(debug_init() != QAPI_OK) return TX_SUCCESS;
-	TRACE("waiting some time\r\n");
-	qapi_Timer_Sleep(10, QAPI_TIMER_UNIT_SEC, true);
-	TRACE("init\r\n");
-
 	int status = qapi_Device_Info_Init();
 	if(status != QAPI_OK){
 		TRACE("failed to init deviceinfo: %d\r\n", status);

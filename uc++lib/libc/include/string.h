@@ -12,6 +12,7 @@ extern int memcmp(const void* destination, const void* source, size_t num);
 
 extern char* strcat(char *dest, const char *src);
 extern size_t strlen(const char* str);
+extern size_t strnlen(const char * str, size_t max);
 extern int strcmp(const char* str1, const char* str2);
 extern int strcoll(const char* str1, const char* str2);
 extern char* strchr(const char* str, int c);

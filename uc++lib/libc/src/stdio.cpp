@@ -44,12 +44,21 @@ extern "C" int vsnprintf(char* s, size_t len, const char* fmt, va_list argp) {
     return res;
 }
 
-static int cb_puts(const char* str, void(*cb)(char, void*), void* cbarg, int maxlen=0) {
+static int cb_puts(const char* str, void(*cb)(char, void*), void* cbarg, int maxlen=0, bool replace_nl = false) {
     int len = 0;
     while(*str && (maxlen == 0 || maxlen > len)) {
-        cb(*str, cbarg);
+        char c = *str;
         str++;
-        len++;
+        if(replace_nl && (c == '\n' || c == '\r')) {
+            cb('\\', cbarg);
+            len++;
+            if(!(maxlen == 0 || maxlen > len)) break;
+            cb(c == '\n' ? 'n' : 'r', cbarg);
+            len++;
+        } else {
+            cb(c, cbarg);
+            len++;
+        }
     }
     return len;
 }
@@ -193,7 +202,7 @@ extern "C" int vcbprintf(const char* fmt, va_list argp, void(*cb)(char, void*), 
                     info.precision = slen;
                 }
                 if(val == nullptr) len += cb_puts("<null>", cb, cbarg, info.precision);
-                else len += cb_puts(val, cb, cbarg, info.precision);
+                else len += cb_puts(val, cb, cbarg, info.precision, info.force_sign);
                 if(info.min_width > info.precision && info.left_justify) {
                     for(int i=0; i < info.min_width - info.precision; i++) {
                         cb(info.zero_pad ? '0' : ' ', cbarg);

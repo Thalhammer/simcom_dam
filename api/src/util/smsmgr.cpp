@@ -1,6 +1,6 @@
 #include "util/smsmgr.h"
 #include "util/trace.h"
-#include "util/vatmgr.h"
+#include "util/VatManager.h"
 #include "stdio.h"
 
 #define TRACE_TAG "smsmgr"
@@ -171,7 +171,7 @@ static volatile int _smsmgr_init_done = TX_FALSE;
 static sms_message_t* volatile _smsmgr_read_msg = NULL;
 static void(*_smsmgr_list_cb)(sms_message_t*) = NULL;
 
-static int cmgr_handler(const char* urc, const char* val) {
+static int cmgr_handler(const char* urc, const char* val, void*) {
 	if(urc != NULL) {
 		TRACE("URC %s: %s\r\n", urc, val);
 	} else {
@@ -202,7 +202,7 @@ static int cmgr_handler(const char* urc, const char* val) {
 	return 1;
 }
 
-static int cmgl_handler(const char* urc, const char* val) {
+static int cmgl_handler(const char* urc, const char* val, void*) {
 	if(urc != NULL) {
 		TRACE("URC %s: %s\r\n", urc, val);
 	} else {
@@ -235,21 +235,22 @@ static int cmgl_handler(const char* urc, const char* val) {
 	return 1;
 }
 
+extern "C"
 int smsmgr_init(void) {
     if(_smsmgr_init_done) return QAPI_OK;
 	TRACE("smsmgr is initialising\r\n");
-    vat_init();
-    if(!vat_execute("AT+CMGF=0\r\n")) {
+    VAT.begin();
+    if(!VAT.execute("AT+CMGF=0\r\n")) {
         TRACE("failed to init smsmgr: failed to set pdu mode\r\n");
         return -1;
     }
-    if(!vat_execute("AT+CNMI?\r\n")) {
+    if(!VAT.execute("AT+CNMI?\r\n")) {
         TRACE("failed to init smsmgr: failed to query cnmi mode\r\n");
         return -1;
     }
 
-    vat_register_urc("CMGR", cmgr_handler);
-    vat_register_urc("CMGL", cmgl_handler);
+    VAT.register_urc("CMGR", cmgr_handler, nullptr);
+    VAT.register_urc("CMGL", cmgl_handler, nullptr);
 
     if(txm_module_object_allocate((void**)&_smsmgr_pool, sizeof(TX_BYTE_POOL)) != TX_SUCCESS) return QAPI_ERR_NO_MEMORY;
 	if(tx_byte_pool_create(_smsmgr_pool, "smsmgr_pool", _smsmgr_pool_storage, 2048) != TX_SUCCESS) {
@@ -260,12 +261,13 @@ int smsmgr_init(void) {
 	return QAPI_OK;
 }
 
+extern "C"
 int smsmgr_read(int id, int markread, sms_message_t* msg) {
 	char buf[20];
 	memset(buf, 0, sizeof(buf));
 	snprintf(buf, sizeof(buf), "AT+CMGR=%d,%d\r\n", id, markread == TX_TRUE ? 0:1);
     _smsmgr_read_msg = msg;
-	int ret = vat_execute(buf);
+	int ret = VAT.execute(buf);
     if(!ret) return -1;
     if(_smsmgr_read_msg != NULL) {
         _smsmgr_read_msg = NULL;
@@ -274,13 +276,13 @@ int smsmgr_read(int id, int markread, sms_message_t* msg) {
     return 0;
 }
 
-
+extern "C"
 int smsmgr_list(int storeid, int markread, void(*cb)(sms_message_t*)) {
     char buf[20];
 	memset(buf, 0, sizeof(buf));
 	snprintf(buf, sizeof(buf), "AT+CMGL=%d,%d\r\n", storeid, markread == TX_TRUE ? 0:1);
     _smsmgr_list_cb = cb;
-	int ret = vat_execute(buf);
+	int ret = VAT.execute(buf);
     if(!ret) return -1;
     _smsmgr_list_cb = NULL;
     return 0;

@@ -2,13 +2,13 @@ DEP_DIR = .deps
 
 FLAGS = -Wall -I deps/libopenpst/include -I deps/libopenpst/lib/serial/include
 CXXFLAGS = -std=c++14
-TOOLS = upload
+TOOLS = upload efs hexcheck hex2bin log
 
-.PHONY: all deps clean dist-clean
+.PHONY: all dependencies clean dist-clean
 
 all: $(TOOLS)
 
-deps: deps/.done
+dependencies: deps/.done
 
 clean:
 	@rm -rf $(TOOLS)
@@ -16,12 +16,12 @@ clean:
 dist-clean: clean
 	@rm -rf deps
 
-$(TOOLS): % : %.cpp | deps
+$(TOOLS): % : %.cpp | dependencies
 	@mkdir -p `dirname $(DEP_DIR)/$@.d`
 	@echo Building $<
 	@$(CXX) $(FLAGS) $(CXXFLAGS) $< -Ldeps/libopenpst/build/release -lopenpst -o $@
 
-deps/.done:
+dependencies/.done:
 	@mkdir deps
 	@(cd deps && git clone https://github.com/openpst/libopenpst.git)
 	+make -C deps/libopenpst

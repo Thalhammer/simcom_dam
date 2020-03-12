@@ -3,6 +3,8 @@
 #define TIME_SECONDS_PER_DAY 86400
 #define TIME_JGREG (15 + 31*(10+12*1582))
 
+#define IS_NUM(x) ((x) >= '0' && (x) <= '9')
+
 // Checked OK
 time_julian_type time_convert_unix_to_julian(time_unix_type ts)
 {
@@ -78,4 +80,26 @@ time_gregorian_type time_convert_julian_to_gregorian(time_julian_type time)
 time_gregorian_type time_convert_unix_to_gregorian(time_unix_type ts)
 {
     return time_convert_julian_to_gregorian(time_convert_unix_to_julian(ts));
+}
+
+int time_parse_cclk_string(const char* value, time_gregorian_type* time)
+{
+    int len = strlen(value);
+	if(len == 22) {
+        if(!IS_NUM(value[1]) || !IS_NUM(value[2])) return -1;
+		time->year = 1900 + (value[1]-'0')*10 + (value[2]-'0');
+        if(time->year < 1980) time->year += 100;
+        if(!IS_NUM(value[4]) || !IS_NUM(value[5])) return -1;
+		time->month = (value[4]-'0')*10 + (value[5]-'0');
+        if(!IS_NUM(value[7]) || !IS_NUM(value[8])) return -1;
+		time->day = (value[7]-'0')*10 + (value[8]-'0');
+        if(!IS_NUM(value[10]) || !IS_NUM(value[11])) return -1;
+		time->hour = (value[10]-'0')*10 + (value[11]-'0');
+        if(!IS_NUM(value[13]) || !IS_NUM(value[14])) return -1;
+		time->minute = (value[13]-'0')*10 + (value[14]-'0');
+        if(!IS_NUM(value[16]) || !IS_NUM(value[17])) return -1;
+		time->second = (value[16]-'0')*10 + (value[17]-'0');
+        return 0;
+	}
+    return -1;
 }

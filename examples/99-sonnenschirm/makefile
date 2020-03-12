@@ -1,0 +1,1 @@
+include ../../build_scripts/default.mk

@@ -4,7 +4,7 @@
 GCC_TOOLCHAIN=/opt/gcc-arm-none-eabi-9-2019-q4-major/bin
 LIB_GCC=/opt/gcc-arm-none-eabi-9-2019-q4-major/lib/gcc/arm-none-eabi/9.2.1/libgcc.a
 LIB_SUPCPP=/opt/gcc-arm-none-eabi-9-2019-q4-major/arm-none-eabi/lib/libsupc++_nano.a
-UPLOAD_DEV=/dev/ttyUSB1
+UPLOAD_DEV=/dev/ttyUSB0
 DEP_DIR = .deps
 OUTPUT_PATH= bin
 INC_PATHS += -I inc

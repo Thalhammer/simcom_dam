@@ -3,6 +3,7 @@
 #include <txpp/event_flags_group.h>
 
 class GNSS_Client {
+public:
     struct location {
         uint64_t timestamp;                 /**< UTC timestamp for a location fix; milliseconds since Jan. 1, 1970. */
         double latitude;                    /**< Latitude in degrees. */
@@ -64,5 +65,8 @@ public:
     bool begin() noexcept;
     bool end() noexcept;
 
-    bool await_fix() noexcept;
+    bool await_fix(uint32_t timeout = 0) noexcept;
+    bool has_fix() noexcept;
+
+    bool get_last_fix(location* loc) noexcept;
 };

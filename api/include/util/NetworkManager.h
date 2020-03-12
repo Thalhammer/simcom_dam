@@ -15,7 +15,7 @@ private:
     constate m_constate;
     CallbackList<64, void, constate> m_constate_cbs;
     bool m_debug_enabled;
-    bool m_at_exit_called;
+    bool m_reconnect_enabled;
     char m_username[128];
     char m_password[128];
     char m_apn[151];
@@ -25,8 +25,8 @@ private:
 public:
     constexpr NetworkManager() noexcept
         : m_dss_handle(nullptr), m_reconnect_timer(nullptr), m_constate(constate::initiated),
-            m_constate_cbs{}, m_debug_enabled(false), m_at_exit_called(false),
-            m_username{}, m_password{}, m_apn{}
+            m_constate_cbs{}, m_debug_enabled(false),
+            m_reconnect_enabled(false), m_username{}, m_password{}, m_apn{}
     {}
 
     NetworkManager(const NetworkManager&) = delete;

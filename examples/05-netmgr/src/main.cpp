@@ -18,10 +18,10 @@ extern "C"
 int dam_app_start(void)
 {
 	Network.set_debug_enabled(true);
-	if(!Network.set_autoreconnect(true)) {
+	/*if(!Network.set_autoreconnect(true)) {
 		TRACE("failed to set autoreconnect\r\n");
 		return TX_SUCCESS;
-	}
+	}*/
 	if(!Network.add_constate_cb(constate_changed, NULL)) {
 		TRACE("failed to add callback\r\n");
 		return TX_SUCCESS;

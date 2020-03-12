@@ -17,6 +17,7 @@ bool GPIO::begin() noexcept {
         if(m_debug_enabled) TRACE("failed to get gpio id %d\r\n", status);
         return false;
     }
+    if(m_debug_enabled) TRACE("gpio %d init done\r\n", m_pin);
     m_is_initialized = true;
     return reconfigure(false, 0, pull::none);
 }
@@ -40,7 +41,7 @@ bool GPIO::reconfigure(bool output, uint32_t function, pull p) noexcept {
     qapi_TLMM_Config_t config;
     config.dir = output ? QAPI_GPIO_OUTPUT_E : QAPI_GPIO_INPUT_E;
     config.func = function;
-    config.drive = QAPI_GPIO_2MA_E;
+    config.drive = QAPI_GPIO_16MA_E;
     config.pin = m_pin;
     config.pull = (qapi_GPIO_Pull_t)p;
     auto status = qapi_TLMM_Config_Gpio(m_tlmm_id, &config);
@@ -48,6 +49,7 @@ bool GPIO::reconfigure(bool output, uint32_t function, pull p) noexcept {
         if(m_debug_enabled) TRACE("failed to reconfigure gpio %d\r\n", status);
         return false;
     }
+    if(m_debug_enabled) TRACE("gpio %d reconfigured (%s, %u)\r\n", m_pin, output?"out":"in", function);
     return true;
 }
 

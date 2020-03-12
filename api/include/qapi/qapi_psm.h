@@ -253,3 +253,6 @@ qapi_Status_t qapi_PSM_Client_Hc_Ack(int32_t client_id);
 #endif /* QAPI_PSM_H */
 
 
+#ifdef __cplusplus
+}
+#endif

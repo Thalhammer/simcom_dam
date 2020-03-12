@@ -48,6 +48,8 @@ namespace txpp {
                 txm_module_object_deallocate(m_group);
                 return false;
             }
+            ULONG act;
+            this->get((ULONG)(-1), TX_OR_CLEAR, &act, TX_NO_WAIT);
             return true;
         }
 
@@ -61,10 +63,21 @@ namespace txpp {
             return true;
         }
 
+        bool get_all(ULONG requested_flags, bool clear, ULONG wait_option = TX_WAIT_FOREVER) noexcept {
+            ULONG act;
+            if(!get(requested_flags, clear ? TX_AND_CLEAR : TX_AND, &act, wait_option)) return false;
+            return (act & requested_flags) == requested_flags;
+        }
+
+        // Set flags
         bool set(ULONG flags_to_set, ULONG m = TX_OR) noexcept {
             if(m_group == nullptr) return false;
             if(tx_event_flags_set(m_group, flags_to_set, m) != TX_SUCCESS) return false;
             return true;
+        }
+
+        bool clear(ULONG flags_to_clear) noexcept {
+            return set(~flags_to_clear, TX_AND);
         }
     };
 }

@@ -89,7 +89,7 @@ void GNSS_Client::Tracking_Callback(GNSS_Client* instance, void* location) noexc
     instance->m_last_location.accuracy = loc->accuracy;
 	instance->m_flags.set(EVT_FLAG_GOT_FIX);
 
-    instance->m_on_location(&instance->m_last_location, instance->m_userdata);
+    if(instance->m_on_location) instance->m_on_location(&instance->m_last_location, instance->m_userdata);
 }
 
 void GNSS_Client::Response_Callback(GNSS_Client* instance, uint32_t err, uint32_t id) noexcept
@@ -163,8 +163,7 @@ bool GNSS_Client::begin() noexcept
         return false;
     }
 
-    ULONG act;
-    m_flags.get(EVT_FLAG_INIT_DONE, TX_AND_CLEAR, &act, TX_NO_WAIT);
+    m_flags.clear(EVT_FLAG_INIT_DONE);
 
     qapi_Location_Options_t opts = {};
     opts.size = sizeof(opts);
@@ -176,7 +175,7 @@ bool GNSS_Client::begin() noexcept
         return false;
     }
 
-    m_flags.get(EVT_FLAG_INIT_DONE, TX_AND_CLEAR, &act, TX_WAIT_FOREVER);
+    m_flags.get_all(EVT_FLAG_INIT_DONE, true, TX_WAIT_FOREVER);
 
     if(m_last_error != QAPI_LOCATION_ERROR_SUCCESS) {
         if(m_debug_enabled) TRACE("Failed to start session %s\r\n", (res < sizeof(error_map)/sizeof(const char*)) ? error_map[res] : "UNKNOWN");
@@ -192,8 +191,7 @@ bool GNSS_Client::begin() noexcept
 bool GNSS_Client::end() noexcept {
     if(!m_is_initialized) return true;
     
-    ULONG act;
-    m_flags.get(EVT_FLAG_INIT_DONE, TX_AND_CLEAR, &act, TX_NO_WAIT);
+    m_flags.clear(EVT_FLAG_INIT_DONE);
 
     auto res = qapi_Loc_Stop_Tracking(m_client, m_session);
     if(res != QAPI_LOCATION_ERROR_SUCCESS) {
@@ -201,7 +199,7 @@ bool GNSS_Client::end() noexcept {
         return false;
     }
 
-    m_flags.get(EVT_FLAG_INIT_DONE, TX_AND_CLEAR, &act, TX_WAIT_FOREVER);
+    m_flags.get_all(EVT_FLAG_INIT_DONE, true, TX_WAIT_FOREVER);
 
     if(m_last_error != QAPI_LOCATION_ERROR_SUCCESS) {
         if(m_debug_enabled) TRACE("Failed to end session %s\r\n", (res < sizeof(error_map)/sizeof(const char*)) ? error_map[res] : "UNKNOWN");
@@ -217,9 +215,18 @@ bool GNSS_Client::end() noexcept {
     return true;
 }
 
-bool GNSS_Client::await_fix() noexcept {
+bool GNSS_Client::await_fix(uint32_t timeout) noexcept {
     if(m_is_initialized!= true) return false;
-    ULONG act;
-    m_flags.get(EVT_FLAG_GOT_FIX, TX_AND, &act, TX_WAIT_FOREVER);
+    return m_flags.get_all(EVT_FLAG_GOT_FIX, false, timeout ? timeout : TX_WAIT_FOREVER);
+}
+
+bool GNSS_Client::has_fix() noexcept {
+    if(m_is_initialized!= true) return false;
+    return m_flags.get_all(EVT_FLAG_GOT_FIX, false, TX_NO_WAIT);
+}
+
+bool GNSS_Client::get_last_fix(location* loc) noexcept {
+    if(!has_fix()) return false;
+    memcpy(loc, &m_last_location, sizeof(location));
     return true;
 }

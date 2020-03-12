@@ -1,6 +1,9 @@
 #include "txm_module.h"
+#include "util/trace.h"
 
-extern TXM_MODULE_THREAD_ENTRY_INFO* _txm_module_entry_info;
+#define TRACE_TAG "tx_cb"
+
+extern TXM_MODULE_THREAD_ENTRY_INFO *_txm_module_instance_ptr;
 
 void _txm_module_callback_request_thread_entry(ULONG id) {
 	// parameter seems to be unused in original code ?
@@ -10,8 +13,8 @@ void _txm_module_callback_request_thread_entry(ULONG id) {
 
 	TXM_MODULE_CALLBACK_NOTIFY notify;
 	int ret;
-	TX_QUEUE* req_queue = _txm_module_entry_info->txm_module_thread_entry_info_callback_request_queue;
-	TX_QUEUE* resp_queue = _txm_module_entry_info->txm_module_thread_entry_info_callback_response_queue;
+	TX_QUEUE* req_queue = _txm_module_instance_ptr->txm_module_thread_entry_info_callback_request_queue;
+	TX_QUEUE* resp_queue = _txm_module_instance_ptr->txm_module_thread_entry_info_callback_response_queue;
 
 	do {
 		// Receive notify

@@ -22,6 +22,8 @@ time_t time_convert_gregorian_to_unix(time_gregorian_type time);
 time_gregorian_type time_convert_julian_to_gregorian(time_julian_type time);
 time_gregorian_type time_convert_unix_to_gregorian(time_t ts);
 
+int time_parse_cclk_string(const char* str, time_gregorian_type* time);
+
 #ifdef __cplusplus
 }
 #endif

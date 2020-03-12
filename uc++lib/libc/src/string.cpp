@@ -119,6 +119,12 @@ size_t strlen(const char* str) {
 	return (end - str) - 1;
 }
 
+size_t strnlen(const char * str, size_t max) {
+	const char* end = str;
+	while(*end++ != '\0' && max-- > 0);
+	return (end - str) - 1;
+}
+
 int strcmp(const char* str1, const char* str2) {
 	while(*str1 != '\0' && *str1 == *str2) { str1++; str2++; }
 	return *str1 - *str2;

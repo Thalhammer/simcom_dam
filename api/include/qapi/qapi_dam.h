@@ -45,7 +45,7 @@
     ((unsigned short) (_txm_module_kernel_call_dispatcher)(TXM_QAPI_VISUAL_AT_OPEN, (ULONG) call_back,(ULONG) 0, (ULONG) 0))
                                                                                                                                                                                                                                            
 #define qapi_force_modem_sleep(sleep)\
-    ((int) (_txm_module_kernel_call_dispatcher)(TXM_QAPI_FORCE_MODEM_SLEEP, (uint8) sleep, (ULONG) 0, (ULONG) 0))
+    ((int) (_txm_module_kernel_call_dispatcher)(TXM_QAPI_FORCE_MODEM_SLEEP, (uint8_t) sleep, (ULONG) 0, (ULONG) 0))
 #define qapi_DAM_Set_DTR_Event_Callback(call_back)\
     ((unsigned short) (_txm_module_kernel_call_dispatcher)(TXM_QAPI_SET_DTR_EVENT_CALLBACK, (ULONG) call_back,(ULONG) 0, (ULONG) 0))
 

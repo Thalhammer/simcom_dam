@@ -7,7 +7,7 @@ extern "C" {
 #define TRACE_TAG "Analog"
 
 bool Analog::begin() noexcept {
-    if(m_handle == nullptr) return true;
+    if(m_handle != nullptr) return true;
     qapi_Status_t status = qapi_ADC_Open(&m_handle, 0);
     if(status != QAPI_OK) {
         if(m_debug_enabled) TRACE("failed to open adc %d\r\n", status);
@@ -30,6 +30,7 @@ bool Analog::begin() noexcept {
     }
     m_device_index = props.nDeviceIdx;
     m_channel_index = props.nChannelIdx;
+    if(m_debug_enabled) TRACE("initialized %u %u\r\n", m_device_index, m_channel_index);
     return true;
 }
 

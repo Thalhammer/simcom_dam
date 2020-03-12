@@ -1,5 +1,6 @@
 #include "util/NetworkManager.h"
 #include "util/trace.h"
+#include "util/VatManager.h"
 #include <cstring>
 
 extern "C" {
@@ -14,10 +15,40 @@ extern "C" {
 #define TRACE_TAG "NetworkManager"
 
 bool NetworkManager::begin() noexcept {
+	if(m_reconnect_timer != nullptr) return true;
+	if(!VAT.begin()) return false;
+	qapi_TIMER_define_attr_t timer_def_attr;
+	memset(&timer_def_attr, 0, sizeof(timer_def_attr));
+	timer_def_attr.cb_type = QAPI_TIMER_FUNC1_CB_TYPE;
+	timer_def_attr.sigs_func_ptr = (void*)_reconnect_cb;
+    timer_def_attr.sigs_mask_data = (uint32_t)this;
+	int res = qapi_Timer_Def( &m_reconnect_timer, &timer_def_attr);
+	if(res != 0) {
+		if(m_debug_enabled) TRACE("failed to define reconnect timer: %d\r\n", res);
+		return false;
+	}
+	m_reconnect_enabled = false;
+	VAT.set_cfun(1);
     return true;
 }
 
 bool NetworkManager::end() noexcept {
+	TRACE("network about to end\r\n");
+	if(m_reconnect_enabled)
+		set_autoreconnect(false);
+	if(false && m_reconnect_timer) {
+		auto res = qapi_Timer_Undef(m_reconnect_timer);
+		if(res != 0) {
+			if(m_debug_enabled) TRACE("failed to undef reconnect timer: %d\r\n", res);
+		} else m_reconnect_timer = nullptr;
+	}
+	TRACE("stop data call\r\n");
+	if(m_dss_handle != NULL) {
+		qapi_DSS_Stop_Data_Call(m_dss_handle);
+		//qapi_DSS_Rel_Data_Srvc_Hndl(m_dss_handle);
+	}
+	TRACE("turning off modem\r\n");
+	VAT.set_cfun(4);
     return true;
 }
 
@@ -39,6 +70,7 @@ bool NetworkManager::connect(const char* APN, const char* user, const char* pw) 
     if(APN) strcpy(m_apn, APN);
     if(user) strcpy(m_username, user);
     if(pw) strcpy(m_password, pw);
+	if(m_debug_enabled) TRACE("connecting to '%s', '%s', '%s'\r\n", m_apn, m_username, m_password);
     if(!reconnect()) {
         m_constate = constate::disconnected;
         return false;
@@ -135,46 +167,26 @@ bool NetworkManager::dump_status() noexcept {
 }
 
 bool NetworkManager::set_autoreconnect(bool enabled) noexcept {
-    if(m_reconnect_timer == NULL && enabled) {
-		qapi_TIMER_define_attr_t timer_def_attr;
-		memset(&timer_def_attr, 0, sizeof(timer_def_attr));
-		timer_def_attr.cb_type = QAPI_TIMER_FUNC1_CB_TYPE;
-		timer_def_attr.sigs_func_ptr = (void*)_reconnect_cb;
-        timer_def_attr.sigs_mask_data = (uint32_t)this;
-		int res = qapi_Timer_Def( &m_reconnect_timer, &timer_def_attr);
-		if(res != 0) {
-			if(m_debug_enabled) TRACE("failed to define reconnect timer: %d\r\n", res);
-			return false;
-		}
-
+	if(m_reconnect_timer == NULL) return false;
+    if(enabled) {
 		qapi_TIMER_set_attr_t timer_set_attr;
 		memset(&timer_set_attr, 0, sizeof(timer_set_attr));
-		timer_set_attr.reload = 1000;
+		timer_set_attr.reload = 5000;
 		timer_set_attr.time = 1000; 
 		timer_set_attr.unit = QAPI_TIMER_UNIT_MSEC;
-		res = qapi_Timer_Set(m_reconnect_timer, &timer_set_attr);
+		int res = qapi_Timer_Set(m_reconnect_timer, &timer_set_attr);
 		if(res != 0){
 			if(m_debug_enabled) TRACE("failed to set reconnect timer: %d\r\n", res);
-			res = qapi_Timer_Undef(m_reconnect_timer);
-            m_reconnect_timer = nullptr;
-			if(res != 0) {
-				if(m_debug_enabled) TRACE("failed to undef reconnect timer: %d\r\n", res);
-			}
             return false;
 		}
-	} else if(m_reconnect_timer != NULL && !enabled) {
+	} else {
 		int res = qapi_Timer_Stop(m_reconnect_timer);
 		if(res != 0) {
 			if(m_debug_enabled) TRACE("failed to stop reconnect timer: %d\r\n", res);
 			return false;
 		}
-		res = qapi_Timer_Undef(m_reconnect_timer);
-		if(res != 0) {
-			if(m_debug_enabled) TRACE("failed to undef reconnect timer: %d\r\n", res);
-			return false;
-		}
-		m_reconnect_timer = nullptr;
 	}
+	m_reconnect_enabled = enabled;
     return true;
 }
 
@@ -186,9 +198,9 @@ void NetworkManager::_dss_cb(
 )
 {
     auto that = reinterpret_cast<NetworkManager*>(user_data);
-	(void)hndl;
-	(void)payload_ptr;
 	int done = 0;
+
+	if(that->m_debug_enabled) TRACE("_dss_cb(%p, %p, %d, %p)\r\n", hndl, user_data, evt, payload_ptr);
 
 	if(evt == QAPI_DSS_EVT_NET_IS_CONN_E) {
 		// Early out if we were already connected
